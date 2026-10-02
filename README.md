@@ -1,180 +1,112 @@
-# app
+# Amiga Bricks
 
-A Databricks App powered by [AppKit](https://developers.databricks.com/docs/appkit/v0/), featuring React, TypeScript, and Tailwind CSS.
+A web-based Commodore Amiga emulator that runs in the browser, built on
+[Databricks AppKit](https://developers.databricks.com/docs/appkit/v0/) and
+powered by [EmulatorJS](https://emulatorjs.org/) (PUAE core). Kickstart ROMs and
+game disk images are stored in a **Unity Catalog Volume** and streamed to the
+emulator on behalf of the signed-in user.
 
-**Enabled plugins:**
-- **Server** -- Express HTTP server with static file serving and Vite dev mode
+This is an AppKit (TypeScript + React + Express) rebuild of an earlier
+FastAPI/Python prototype. The game-grouping, M3U/ZIP bundling and security-header
+logic were ported over; storage moved from bundled files to a UC Volume, and the
+UI was rebuilt with AppKit components while keeping the retro Workbench look.
 
-## Prerequisites
+## How it works
 
-- Node.js v22+ and npm
-- Databricks CLI (for deployment)
-- Access to a Databricks workspace
+- **Storage** — ROMs live under `roms/` and disk images under `games/` inside a
+  Unity Catalog Volume. The volume path is set by the `DATABRICKS_VOLUME_FILES`
+  env var in `app.yaml` and is fully configurable at deploy time.
+- **Access** — the AppKit **Files plugin** runs in `on-behalf-of-user` mode, so
+  every read/write/upload executes as the signed-in user and is governed by
+  that user's Unity Catalog grants on the volume (`READ_VOLUME` /
+  `WRITE_VOLUME`). No files are bundled into the app source.
+- **Emulator** — EmulatorJS v4.2.3 assets are vendored under
+  `client/public/emulatorjs/` (no runtime CDN dependency). The server sets
+  `Cross-Origin-Opener-Policy: same-origin` and
+  `Cross-Origin-Embedder-Policy: require-corp` so the browser enables
+  `SharedArrayBuffer`, which the threaded PUAE WASM core requires.
 
-## Databricks Authentication
+## Features
 
-### Local Development
+- Game-library grid with search/filter and auto-generated cover tiles.
+- Multi-disk games auto-grouped by filename; save disks detected and excluded
+  from the playlist (a `#SAVEDISK` directive is added to the generated M3U).
+- Multiple Kickstart ROMs with model detection (A500 / A600 / A1200 / CD32)
+  and a ROM selector.
+- In-app upload of ROMs and disk images straight to the volume.
+- Per-game screenshots (captured from the emulator canvas) and a save-state
+  activity log.
 
-For local development, configure your environment variables by creating a `.env` file:
+## Endpoints
 
-```bash
-cp .env.example .env
-```
+| Endpoint                             | Description                                           |
+| ------------------------------------ | ----------------------------------------------------- |
+| `GET /api/config`                    | Runtime config (EmulatorJS asset source/path, volume) |
+| `GET /api/games`                     | Games with multi-disk grouping                        |
+| `GET /api/roms`                      | Discovered Kickstart ROMs + detected model            |
+| `GET /api/games/:slug/bundle`        | ZIP (M3U + ADFs) for a multi-disk game                |
+| `GET /api/content/:kind/:filename`   | Extension-preserving stream of a ROM/disk image       |
+| `GET POST DELETE /api/files/files/*` | Files plugin routes (list / upload / delete / …)      |
 
-Edit `.env` and set the environment variables you need:
+> The dedicated `/api/content/...` route exists because EmulatorJS derives the
+> file type from the URL's file extension; the Files plugin's `?path=` query URL
+> would not expose one.
 
-```env
-DATABRICKS_HOST=https://your-workspace.cloud.databricks.com
-DATABRICKS_APP_PORT=8000
-# ... other environment variables, depending on the plugins you use
-```
+## Supported formats
 
-### CLI Authentication
+- Disk images: `.adf`, `.adz`, `.dms`, `.zip`
+- Kickstart ROMs: `.rom`, `.bin` (or any filename containing `kick`)
+- `.ipf` is **not** supported (needs the proprietary `capsimg` library).
 
-The Databricks CLI requires authentication to deploy and manage apps. Configure authentication using one of these methods:
+## Multi-disk naming conventions
 
-#### OAuth U2M
+| Pattern                      | Example                    |
+| ---------------------------- | -------------------------- |
+| `_Disk N` / `_DiskN`         | `Monkey Island_Disk 1.adf` |
+| `(Disk N)` / `(Disk N of M)` | `Game (Disk 2 of 3).adf`   |
+| `_dN`                        | `Monkey Island_d1.adf`     |
+| `_Disk A` / `(Disk A)`       | `Monkey Island_Disk A.adf` |
+| Trailing letter A–F          | `Monkey Island A.adf`      |
+| Save disk                    | `Game savedisk.adf`        |
 
-Interactive browser-based authentication with short-lived tokens:
+Trailing scene/release tags (`[cr FLT]`, `[!]`, `[a]`, …) are stripped during
+grouping. Grouping logic lives in `server/games.ts` and is covered by
+`server/games.test.ts`.
 
-```bash
-databricks auth login --host https://your-workspace.cloud.databricks.com
-```
+## Configuration
 
-This will open your browser to complete authentication. The CLI saves credentials to `~/.databrickscfg`.
+| Variable                  | Default | Description                                              |
+| ------------------------- | ------- | -------------------------------------------------------- |
+| `DATABRICKS_VOLUME_FILES` | —       | Volume path, e.g. `/Volumes/<catalog>/<schema>/<volume>` |
+| `EMULATORJS_SOURCE`       | `local` | `local` (vendored assets) or `cdn`                       |
 
-#### Configuration Profiles
+## Requirements for use
 
-Use multiple profiles for different workspaces:
+You must supply (they are copyrighted and not included):
 
-```ini
-[DEFAULT]
-host = https://dev-workspace.cloud.databricks.com
+1. A **Kickstart ROM** uploaded to `roms/` — Kickstart 1.3 is recommended for
+   most classic A500 games. Obtain legally, e.g. via
+   [Amiga Forever](https://www.amigaforever.com/).
+2. **Game disk images** uploaded to `games/`.
 
-[production]
-host = https://prod-workspace.cloud.databricks.com
-client_id = prod-client-id
-client_secret = prod-client-secret
-```
+Use the in-app **Upload** button, or add files directly to the volume.
 
-Deploy using a specific profile:
+## Known limitations
 
-```bash
-databricks bundle deploy --profile production
-```
+- **Cross-origin isolation is required.** The threaded PUAE core needs
+  `SharedArrayBuffer`, which browsers only grant to a cross-origin-isolated,
+  top-level page. The emulator therefore runs when the deployed app is opened in
+  its own tab, but **not** inside the App Builder preview iframe (which cannot be
+  cross-origin isolated) — there EmulatorJS reports "EJS_Runtime is not defined".
+- Multi-drive (loading all disks into DF0:–DF3: at once) is not functional in the
+  current EmulatorJS PUAE WASM build; the `(MD)` M3U infrastructure is in place
+  for a future core that fixes it. Disk swapping via the in-emulator menu works.
 
-**Note:** Personal Access Tokens (PATs) are legacy authentication. OAuth is strongly recommended for better security.
-
-## Getting Started
-
-### Install Dependencies
-
-```bash
-npm install
-```
-
-### Development
-
-Run the app in development mode with hot reload:
-
-```bash
-npm run dev
-```
-
-The app will be available at the URL shown in the console output.
-
-### Build
-
-Build both client and server for production:
-
-```bash
-npm run build
-```
-
-This creates:
-
-- `dist/server.js` - Compiled server bundle
-- `client/dist/` - Bundled client assets
-
-### Production
-
-Run the production build:
-
-```bash
-npm start
-```
-
-## Code Quality
-
-There are a few commands to help you with code quality:
+## Development
 
 ```bash
-# Type checking
-npm run typecheck
-
-# Linting
-npm run lint
-npm run lint:fix
-
-# Formatting
-npm run format
-npm run format:fix
+npm run dev        # dev server with hot reload (managed by App Builder)
+npm run typecheck  # tsc for server + client
+npm run lint       # eslint
+npm run test       # vitest (game-grouping unit tests)
 ```
-
-## Deployment with Databricks Asset Bundles
-
-### 1. Configure Bundle
-
-Update `databricks.yml` with your workspace settings:
-
-```yaml
-targets:
-  default:
-    workspace:
-      host: https://your-workspace.cloud.databricks.com
-```
-
-Make sure to replace all placeholder values in `databricks.yml` with your actual resource IDs.
-
-### 2. Deploy
-
-Deploy and start the app with a single command:
-
-```bash
-databricks apps deploy
-```
-
-`databricks apps deploy` validates the project, deploys it, starts the app, and prints its URL.
-
-### Deploy to Production
-
-1. Configure the production target in `databricks.yml`
-2. Deploy to production:
-
-```bash
-databricks apps deploy -t prod
-```
-
-> **Restarting a stopped app:** apps stop after a period of inactivity. To start one again without redeploying, run `databricks apps start <APP_NAME>`.
-
-## Project Structure
-
-```
-* client/          # React frontend
-  * src/           # Source code
-  * public/        # Static assets
-* server/          # Express backend
-  * server.ts      # Server entry point
-  * routes/        # Routes
-* shared/          # Shared types
-* databricks.yml   # Bundle configuration
-* app.yaml         # App configuration
-* .env.example     # Environment variables example
-```
-
-## Tech Stack
-
-- **Backend**: Node.js, Express
-- **Frontend**: React.js, TypeScript, Vite, Tailwind CSS, React Router
-- **UI Components**: Radix UI, shadcn/ui
-- **Databricks**: AppKit SDK

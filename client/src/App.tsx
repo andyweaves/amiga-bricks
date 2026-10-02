@@ -1,77 +1,43 @@
-import { createBrowserRouter, RouterProvider, NavLink, Outlet } from 'react-router';
-import { useState } from 'react';
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  useIsMobile,
-} from '@databricks/appkit-ui/react';
-import { Menu } from 'lucide-react';
+import { createBrowserRouter, Link, Outlet, RouterProvider } from 'react-router';
+import { LibraryPage } from '@/pages/LibraryPage';
+import { PlayPage } from '@/pages/PlayPage';
 
-const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-    isActive
-      ? 'bg-primary text-primary-foreground'
-      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-  }`;
-
-const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-    isActive
-      ? 'bg-primary text-primary-foreground'
-      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-  }`;
-
-type NavLinkClassFn = (props: { isActive: boolean }) => string;
-
-function NavLinks({ className, linkClass, onClick }: { className?: string; linkClass: NavLinkClassFn; onClick?: () => void }) {
+function AmigaLogo() {
+  // Rainbow check-mark, the classic Amiga boot logo.
   return (
-    <nav className={className}>
-      <NavLink to="/" end className={linkClass} onClick={onClick}>
-        Home
-      </NavLink>
-    </nav>
+    <svg viewBox="0 0 40 35" className="h-8 w-9" aria-hidden>
+      <g>
+        <polygon points="8,20 14,28 34,6 28,6 14,22 12,18" fill="var(--stripe-red)" />
+        <polygon points="8,22 14,30 34,8 28,8 14,24 12,20" fill="var(--stripe-orange)" />
+        <polygon points="8,24 14,32 34,10 28,10 14,26 12,22" fill="var(--stripe-yellow)" />
+        <polygon points="8,26 14,34 34,12 28,12 14,28 12,24" fill="var(--stripe-green)" />
+      </g>
+    </svg>
   );
 }
 
 function Layout() {
-  const isMobile = useIsMobile();
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
-
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="border-b px-4 md:px-6 py-3 flex items-center gap-4">
-        <h1 className="text-lg font-semibold text-foreground">app</h1>
-        {/* Desktop nav — hidden below md breakpoint */}
-        <NavLinks className="hidden md:flex gap-1" linkClass={navLinkClass} />
-        {/* Mobile nav — visible below md breakpoint */}
-        <div className="ml-auto md:hidden">
-          {/* Gate on isMobile so the portaled sheet can't linger on desktop
-              (replaces a set-state-in-effect reset). */}
-          <Sheet open={mobileNavOpen && isMobile} onOpenChange={setMobileNavOpen}>
-            <Button variant="ghost" size="icon" onClick={() => setMobileNavOpen(true)}>
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Open navigation</span>
-            </Button>
-            <SheetContent side="left">
-              <SheetHeader>
-                <SheetTitle>Navigation</SheetTitle>
-              </SheetHeader>
-              <NavLinks className="flex flex-col gap-1" linkClass={mobileNavLinkClass} onClick={() => setMobileNavOpen(false)} />
-            </SheetContent>
-          </Sheet>
-        </div>
+    <div className="flex min-h-screen flex-col bg-background">
+      <div className="rainbow-stripe" />
+      <header className="flex items-center gap-3 border-b border-border px-4 py-3 md:px-6">
+        <Link to="/" className="flex items-center gap-3">
+          <AmigaLogo />
+          <div className="leading-tight">
+            <h1 className="font-amiga text-xl text-foreground">Amiga Bricks</h1>
+            <p className="text-xs text-muted-foreground">EmulatorJS · PUAE core · Databricks Apps</p>
+          </div>
+        </Link>
       </header>
 
       <main className="flex-1 p-4 md:p-6">
         <Outlet />
       </main>
+
+      <footer className="border-t border-border px-4 py-3 text-center text-xs text-muted-foreground md:px-6">
+        Amiga is a trademark of Amiga Corporation · Databricks is a trademark of Databricks, Inc. · ROMs and games are
+        served from a Unity Catalog volume.
+      </footer>
     </div>
   );
 }
@@ -80,57 +46,12 @@ const router = createBrowserRouter([
   {
     element: <Layout />,
     children: [
-      { path: '/', element: <HomePage /> },
+      { path: '/', element: <LibraryPage /> },
+      { path: '/play/:key', element: <PlayPage /> },
     ],
   },
 ]);
 
 export default function App() {
   return <RouterProvider router={router} />;
-}
-
-function HomePage() {
-  return (
-    <div className="max-w-2xl mx-auto space-y-6 mt-8">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold mb-2 text-foreground">
-          Welcome to your Databricks App
-        </h2>
-        <p className="text-lg text-muted-foreground">
-          Powered by Databricks AppKit
-        </p>
-      </div>
-
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle>Getting Started</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">Your app is ready. Explore the resources below to continue building.</p>
-          <ul className="space-y-2 text-sm">
-            <li>
-              <a
-                href="https://github.com/databricks/appkit"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary underline underline-offset-4 hover:text-primary/80"
-              >
-                AppKit on GitHub →
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://developers.databricks.com/docs/appkit/v0/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary underline underline-offset-4 hover:text-primary/80"
-              >
-                AppKit documentation →
-              </a>
-            </li>
-          </ul>
-        </CardContent>
-      </Card>
-    </div>
-  );
 }
