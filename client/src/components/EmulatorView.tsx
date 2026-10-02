@@ -13,6 +13,32 @@ export interface EmulatorViewProps {
   onLoadState?: () => void;
 }
 
+type PatchableGetContext = HTMLCanvasElement['getContext'] & { __amigaPatched?: boolean };
+
+/**
+ * Force `preserveDrawingBuffer: true` on the WebGL context EmulatorJS creates.
+ * Without it the drawing buffer is cleared after compositing, so screenshotting
+ * the canvas yields a blank (black/white) image. Must run before the core
+ * creates its GL context. Patched once, globally.
+ */
+function enablePreserveDrawingBuffer(): void {
+  const proto = HTMLCanvasElement.prototype;
+  // eslint-disable-next-line @typescript-eslint/unbound-method -- re-bound via .call below
+  const current = proto.getContext as PatchableGetContext;
+  if (current.__amigaPatched) return;
+
+  const original = current;
+  const patched = function (this: HTMLCanvasElement, contextId: string, options?: unknown) {
+    if (contextId === 'webgl' || contextId === 'webgl2' || contextId === 'experimental-webgl') {
+      const base = options && typeof options === 'object' ? (options as Record<string, unknown>) : {};
+      options = { ...base, preserveDrawingBuffer: true };
+    }
+    return (original as (id: string, opts?: unknown) => RenderingContext | null).call(this, contextId, options);
+  } as PatchableGetContext;
+  patched.__amigaPatched = true;
+  proto.getContext = patched;
+}
+
 /**
  * Mounts the EmulatorJS (PUAE) runtime. EmulatorJS is a non-React global that
  * cannot be cleanly re-initialized in place, so after the first boot any
@@ -48,6 +74,9 @@ export function EmulatorView({
       return;
     }
     window.__amigaEmulatorLoaded = true;
+
+    // Must happen before EmulatorJS creates its WebGL context so screenshots work.
+    enablePreserveDrawingBuffer();
 
     const whdMode = gameType === 'lha' ? 'files' : 'disabled';
 
