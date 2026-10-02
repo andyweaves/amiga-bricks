@@ -1,8 +1,8 @@
 import { Link } from 'react-router';
 import { Badge, Button } from '@databricks/appkit-ui/react';
-import { Save, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { coverColors, gameKey, type GameEntry } from '@/lib/api';
-import { FloppyDisk, FloppyGlyph } from '@/components/FloppyDisk';
+import { FloppyDisk, FloppyGlyph, FloppySaveGlyph } from '@/components/FloppyDisk';
 
 export function GameCard({
   game,
@@ -44,7 +44,7 @@ export function GameCard({
               )}
               {game.hasSaveDisk && (
                 <Badge variant="secondary" className="gap-1 text-[0.6rem]">
-                  <Save className="h-3 w-3" /> save
+                  <FloppySaveGlyph className="h-3 w-3" /> save
                 </Badge>
               )}
             </div>

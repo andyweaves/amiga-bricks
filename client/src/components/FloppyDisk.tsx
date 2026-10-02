@@ -65,3 +65,28 @@ export function FloppyGlyph({ className }: { className?: string }) {
     </svg>
   );
 }
+
+/** Save disk: a floppy with a downward "write" arrow to distinguish it. */
+export function FloppySaveGlyph({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* body with cut corner */}
+      <path d="M6 3h10l4 4v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" />
+      {/* shutter */}
+      <path d="M9 3v4h6V3" />
+      {/* write-to-disk arrow */}
+      <path d="M12 11v6" />
+      <path d="m9 14 3 3 3-3" />
+    </svg>
+  );
+}
