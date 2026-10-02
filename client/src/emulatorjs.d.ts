@@ -23,6 +23,7 @@ declare global {
     EJS_pathtodata?: string;
     EJS_paths?: Record<string, string>;
     EJS_startOnLoaded?: boolean;
+    EJS_threads?: boolean;
     EJS_color?: string;
     EJS_screenCapture?: boolean | Record<string, unknown>;
     EJS_defaultOptions?: Record<string, string>;
