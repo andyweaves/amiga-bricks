@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { detectModel, groupGames, listRoms, parseDiskInfo } from './games';
+import { detectModel, filesForGame, groupGames, listRoms, parseDiskInfo } from './games';
 
 describe('parseDiskInfo', () => {
   test('single-disk game has no disk number', () => {
@@ -52,6 +52,31 @@ describe('groupGames', () => {
 
   test('ignores unsupported file types', () => {
     expect(groupGames(['readme.txt', 'notes.md'])).toHaveLength(0);
+  });
+});
+
+describe('filesForGame', () => {
+  const files = [
+    'Monkey Island_Disk 1.adf',
+    'Monkey Island_Disk 2.adf',
+    'Monkey Island savedisk.adf',
+    'Sensible Soccer.adf',
+  ];
+
+  test('single-disk game resolves to its one file', () => {
+    expect(filesForGame(files, 'Sensible Soccer.adf')).toEqual(['Sensible Soccer.adf']);
+  });
+
+  test('multi-disk game resolves to all disks plus the save disk', () => {
+    expect(filesForGame(files, 'monkey-island').sort()).toEqual([
+      'Monkey Island savedisk.adf',
+      'Monkey Island_Disk 1.adf',
+      'Monkey Island_Disk 2.adf',
+    ]);
+  });
+
+  test('unknown key resolves to nothing', () => {
+    expect(filesForGame(files, 'does-not-exist')).toEqual([]);
   });
 });
 

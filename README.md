@@ -39,14 +39,16 @@ UI was rebuilt with AppKit components while keeping the retro Workbench look.
 
 ## Endpoints
 
-| Endpoint                             | Description                                           |
-| ------------------------------------ | ----------------------------------------------------- |
-| `GET /api/config`                    | Runtime config (EmulatorJS asset source/path, volume) |
-| `GET /api/games`                     | Games with multi-disk grouping                        |
-| `GET /api/roms`                      | Discovered Kickstart ROMs + detected model            |
-| `GET /api/games/:slug/bundle`        | ZIP (M3U + ADFs) for a multi-disk game                |
-| `GET /api/content/:kind/:filename`   | Extension-preserving stream of a ROM/disk image       |
-| `GET POST DELETE /api/files/files/*` | Files plugin routes (list / upload / delete / …)      |
+| Endpoint                           | Description                                           |
+| ---------------------------------- | ----------------------------------------------------- |
+| `GET /api/config`                  | Runtime config (EmulatorJS asset source/path, volume) |
+| `GET /api/games`                   | Games with multi-disk grouping                        |
+| `GET /api/roms`                    | Discovered Kickstart ROMs + detected model            |
+| `GET /api/games/:slug/bundle`      | ZIP (M3U + ADFs) for a multi-disk game                |
+| `GET /api/content/:kind/:filename` | Extension-preserving stream of a ROM/disk image       |
+| `DELETE /api/games/:key`           | Delete a whole game (all disks + save disk)           |
+| `DELETE /api/roms/:filename`       | Delete a Kickstart ROM                                |
+| `GET POST /api/files/files/*`      | Files plugin routes (list / upload / …)               |
 
 > The dedicated `/api/content/...` route exists because EmulatorJS derives the
 > file type from the URL's file extension; the Files plugin's `?path=` query URL

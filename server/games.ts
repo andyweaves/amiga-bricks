@@ -182,6 +182,18 @@ export function groupGames(filenames: string[]): GameEntry[] {
   return games.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
 }
 
+/**
+ * Resolve every physical file that makes up a game, given a game key.
+ * Single-disk games are keyed by their exact filename. Multi-disk games are
+ * keyed by slug — this returns all of their disks *and* the save disk (which
+ * grouping hides), so a delete can remove the whole game cleanly.
+ */
+export function filesForGame(filenames: string[], key: string): string[] {
+  const valid = filenames.filter(isValidGame);
+  if (valid.includes(key)) return [key];
+  return valid.filter((f) => slugify(parseDiskInfo(stemOf(f)).base) === key);
+}
+
 /** Detect the Amiga model from a Kickstart ROM filename. */
 export function detectModel(romFilename: string): string {
   const n = romFilename.toLowerCase();
