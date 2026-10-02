@@ -95,20 +95,85 @@ Use the in-app **Upload** button, or add files directly to the volume.
 
 ## Known limitations
 
-- **Cross-origin isolation is required.** The threaded PUAE core needs
-  `SharedArrayBuffer`, which browsers only grant to a cross-origin-isolated,
-  top-level page. The emulator therefore runs when the deployed app is opened in
-  its own tab, but **not** inside the App Builder preview iframe (which cannot be
-  cross-origin isolated) — there EmulatorJS reports "EJS_Runtime is not defined".
+- **Needs a WebGL2-capable browser.** The vendored PUAE core is the WebGL2 build
+  (`client/public/emulatorjs/cores/puae-wasm.data`), and the core report sets
+  `defaultWebGL2` so EmulatorJS loads that build. Virtually all current desktop
+  browsers qualify. Open the app in its own browser tab — the emulator's render
+  loop pauses whenever its page/iframe isn't visible (so it won't run inside an
+  embedded preview pane).
 - Multi-drive (loading all disks into DF0:–DF3: at once) is not functional in the
   current EmulatorJS PUAE WASM build; the `(MD)` M3U infrastructure is in place
   for a future core that fixes it. Disk swapping via the in-emulator menu works.
 
-## Development
+## Running locally
+
+The app is a standard Node + Vite project, so it runs anywhere Node does.
+
+**Prerequisites:** Node.js 22+, npm, the
+[Databricks CLI](https://docs.databricks.com/dev-tools/cli/), and
+`READ_VOLUME`/`WRITE_VOLUME` on the volume that holds your ROMs/games.
+
+1. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. Authenticate to your workspace (OAuth U2M):
+
+   ```bash
+   databricks auth login --host https://<your-workspace-host> --profile myws
+   ```
+
+3. Create a `.env` file (it is git-ignored):
+
+   ```env
+   DATABRICKS_CONFIG_PROFILE=myws
+   DATABRICKS_HOST=https://<your-workspace-host>
+   # UC Volume holding roms/ and games/
+   DATABRICKS_VOLUME_FILES=/Volumes/<catalog>/<schema>/<volume>
+   EMULATORJS_SOURCE=local
+   DATABRICKS_APP_PORT=8000
+   ```
+
+   PAT alternative: instead of the profile, set `DATABRICKS_HOST` and
+   `DATABRICKS_TOKEN=dapi…`.
+
+4. Start the dev server (hot reload) and open <http://localhost:8000>:
+
+   ```bash
+   npm run dev
+   ```
+
+   The emulator runs locally: `localhost` is a secure context and the server
+   sends the COOP/COEP headers it needs. Files are read/written **as your
+   authenticated identity** (there's no Databricks Apps proxy locally, so the
+   on-behalf-of-user calls fall back to your CLI session). Your existing library
+   in the volume is available immediately — no need to copy ROMs/games locally.
+
+Production-style run:
 
 ```bash
-npm run dev        # dev server with hot reload (managed by App Builder)
-npm run typecheck  # tsc for server + client
-npm run lint       # eslint
-npm run test       # vitest (game-grouping unit tests)
+npm run build && npm start
 ```
+
+Other useful scripts:
+
+```bash
+npm run typecheck   # tsc for server + client
+npm run lint        # eslint
+npm run test        # vitest (game-grouping unit tests)
+```
+
+## Deploying to Databricks Apps
+
+The repo ships an `app.yaml`, so it deploys with the Databricks CLI:
+
+```bash
+databricks apps deploy <app-name>
+```
+
+Point the deployed app at your volume by editing `DATABRICKS_VOLUME_FILES` in
+`app.yaml`. For repeatable, environment-targeted deploys, add a
+[Databricks Asset Bundle](https://docs.databricks.com/dev-tools/bundles/)
+(`databricks.yml`) and use `databricks bundle deploy`.
