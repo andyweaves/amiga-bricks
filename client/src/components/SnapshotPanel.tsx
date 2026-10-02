@@ -68,7 +68,9 @@ export function SnapshotPanel({
       return;
     }
     try {
-      const { blob } = await emu.takeScreenshot();
+      // 'canvas' source + preserveDrawingBuffer (set in EmulatorView) captures
+      // the live frame; the retroarch source returns black (gpu screenshot off).
+      const { blob } = await emu.takeScreenshot('canvas');
       const data = await blobToDataUrl(blob);
       setNote(null);
       persist([data, ...shots].slice(0, MAX_SHOTS));
