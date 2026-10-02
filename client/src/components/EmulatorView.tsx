@@ -80,7 +80,7 @@ export function EmulatorView({
   }, [ejsPath, gameUrl, biosUrl, gameName, model, gameType, onReady, onSaveState, onLoadState]);
 
   return (
-    <div className="relative aspect-video w-full bg-black">
+    <div className="relative w-full bg-black">
       <div id="game" />
       <div className="crt-scan" aria-hidden />
       {failed && (

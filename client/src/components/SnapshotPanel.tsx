@@ -21,15 +21,13 @@ function loadShots(gameId: string): string[] {
   }
 }
 
-/** Capture the running emulator's canvas as a PNG data URL. */
-function captureCanvas(): string | null {
-  const canvas = document.querySelector<HTMLCanvasElement>('#game canvas');
-  if (!canvas) return null;
-  try {
-    return canvas.toDataURL('image/png');
-  } catch {
-    return null;
-  }
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error('Failed to read screenshot'));
+    reader.readAsDataURL(blob);
+  });
 }
 
 export function SnapshotPanel({
@@ -60,14 +58,23 @@ export function SnapshotPanel({
     [gameId]
   );
 
-  const capture = () => {
-    const data = captureCanvas();
-    if (!data) {
+  // Use EmulatorJS's own screenshot API — it reads the core framebuffer, so it
+  // works even though the WebGL canvas doesn't preserve its drawing buffer
+  // (plain canvas.toDataURL() returns a blank image).
+  const capture = async () => {
+    const emu = window.EJS_emulator;
+    if (!emu || typeof emu.takeScreenshot !== 'function') {
       setNote('Start the game first, then capture.');
       return;
     }
-    setNote(null);
-    persist([data, ...shots].slice(0, MAX_SHOTS));
+    try {
+      const { blob } = await emu.takeScreenshot();
+      const data = await blobToDataUrl(blob);
+      setNote(null);
+      persist([data, ...shots].slice(0, MAX_SHOTS));
+    } catch {
+      setNote('Couldn’t capture a screenshot — try again once the game is running.');
+    }
   };
 
   const remove = (idx: number) => persist(shots.filter((_, i) => i !== idx));
@@ -86,7 +93,7 @@ export function SnapshotPanel({
           <h3 className="flex items-center gap-2 font-amiga text-sm">
             <Camera className="h-4 w-4" /> Screenshots
           </h3>
-          <Button size="sm" variant="outline" className="gap-1.5" onClick={capture}>
+          <Button size="sm" variant="outline" className="gap-1.5" onClick={() => void capture()}>
             <Camera className="h-3.5 w-3.5" /> Capture
           </Button>
         </div>
