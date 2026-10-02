@@ -1,7 +1,7 @@
 import { createApp, files, server } from '@databricks/appkit';
 import type { Request } from 'express';
 import { strToU8, zipSync } from 'fflate';
-import { detectModel, groupGames, listRoms, type GameEntry } from './games';
+import { detectModel, filesForGame, groupGames, listRoms, type GameEntry } from './games';
 
 /**
  * Volume key for the Files plugin (its manifest-required default key). The
@@ -137,6 +137,42 @@ await createApp({
         } catch (err) {
           console.error('[amiga] content stream failed', err);
           res.status(404).json({ error: 'File not found' });
+        }
+      });
+
+      // Delete a whole game — all of its disks and its save disk — as the
+      // signed-in user. The save disk is hidden from the grouped game entry, so
+      // this resolves the full file set server-side rather than trusting the
+      // client. Runs under OBO, gated by the user's WRITE_VOLUME grant.
+      app.delete('/api/games/:key', async (req, res) => {
+        try {
+          const names = await listFilenames(req, GAMES_DIR);
+          const targets = filesForGame(names, decodeURIComponent(req.params.key));
+          if (targets.length === 0) {
+            res.status(404).json({ error: 'Game not found' });
+            return;
+          }
+          for (const name of targets) {
+            await appkit.files(VOLUME_KEY).asUser(req).delete(`${GAMES_DIR}/${name}`);
+          }
+          res.json({ success: true, deleted: targets });
+        } catch (err) {
+          console.error('[amiga] delete game failed', err);
+          res.status(500).json({ error: 'Failed to delete game' });
+        }
+      });
+
+      // Delete a single Kickstart ROM as the signed-in user.
+      app.delete('/api/roms/:filename', async (req, res) => {
+        try {
+          await appkit
+            .files(VOLUME_KEY)
+            .asUser(req)
+            .delete(`${ROMS_DIR}/${decodeURIComponent(req.params.filename)}`);
+          res.json({ success: true });
+        } catch (err) {
+          console.error('[amiga] delete rom failed', err);
+          res.status(500).json({ error: 'Failed to delete ROM' });
         }
       });
 

@@ -60,6 +60,25 @@ export async function uploadFile(path: string, file: File): Promise<void> {
   }
 }
 
+async function expectOk(res: Response, fallback: string): Promise<void> {
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(body?.error ?? `${fallback} (${res.status})`);
+  }
+}
+
+/** Delete a whole game (all disks + save disk) as the signed-in user. */
+export async function deleteGame(key: string): Promise<void> {
+  const res = await fetch(`/api/games/${encodeURIComponent(key)}`, { method: 'DELETE' });
+  await expectOk(res, 'Delete failed');
+}
+
+/** Delete a Kickstart ROM as the signed-in user. */
+export async function deleteRom(filename: string): Promise<void> {
+  const res = await fetch(`/api/roms/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+  await expectOk(res, 'Delete failed');
+}
+
 async function getJson<T>(url: string): Promise<T> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`${url} -> ${res.status}`);
