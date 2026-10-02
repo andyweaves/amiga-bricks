@@ -1,7 +1,8 @@
 import { Link } from 'react-router';
 import { Badge, Button } from '@databricks/appkit-ui/react';
-import { Disc3, Save, Trash2 } from 'lucide-react';
+import { Save, Trash2 } from 'lucide-react';
 import { coverColors, gameKey, type GameEntry } from '@/lib/api';
+import { FloppyDisk, FloppyGlyph } from '@/components/FloppyDisk';
 
 export function GameCard({
   game,
@@ -14,6 +15,7 @@ export function GameCard({
 }) {
   const { from, to } = coverColors(game.name);
   const diskCount = game.disks?.length ?? 1;
+  const gradientId = `fd-${(game.slug ?? game.filename ?? game.name).replace(/[^a-zA-Z0-9]/g, '')}`;
 
   return (
     <div className="group relative">
@@ -23,19 +25,21 @@ export function GameCard({
         aria-label={`Play ${game.name}`}
       >
         <div className="overflow-hidden rounded-md border border-border bg-card transition-all group-hover:-translate-y-0.5 group-hover:border-primary group-focus-within:border-primary">
-          {/* Cover tile */}
-          <div
-            className="disk-tile relative flex aspect-[4/3] items-center justify-center"
-            style={{ background: `linear-gradient(135deg, ${from} 0%, ${to} 100%)` }}
-          >
-            <Disc3 className="h-14 w-14 text-white/80 drop-shadow transition-transform group-hover:scale-110" />
+          {/* Cover tile — the game as a 3.5" floppy disk */}
+          <div className="disk-tile relative flex aspect-[4/3] items-center justify-center">
+            <FloppyDisk
+              from={from}
+              to={to}
+              gradientId={gradientId}
+              className="h-[82%] w-auto drop-shadow-lg transition-transform group-hover:-rotate-2 group-hover:scale-105"
+            />
             <span className="absolute right-1.5 top-1.5 rounded bg-black/45 px-1.5 py-0.5 font-amiga text-[0.6rem] uppercase tracking-wide text-white">
               {game.type}
             </span>
             <div className="absolute inset-x-0 bottom-0 flex items-center gap-1 p-1.5">
               {game.disks && (
                 <Badge variant="secondary" className="gap-1 text-[0.6rem]">
-                  <Disc3 className="h-3 w-3" /> {diskCount} disks
+                  <FloppyGlyph className="h-3 w-3" /> {diskCount} disks
                 </Badge>
               )}
               {game.hasSaveDisk && (

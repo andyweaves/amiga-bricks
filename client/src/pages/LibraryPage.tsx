@@ -19,7 +19,7 @@ import {
   SelectValue,
   Skeleton,
 } from '@databricks/appkit-ui/react';
-import { Cpu, Gamepad2, HardDrive, Search, Trash2, Wrench } from 'lucide-react';
+import { Cpu, HardDrive, Joystick, Search, Trash2, Wrench } from 'lucide-react';
 import { api, deleteGame, deleteRom, gameKey, type GameEntry, type RomEntry } from '@/lib/api';
 import { GameCard } from '@/components/GameCard';
 import { UploadDialog } from '@/components/UploadDialog';
@@ -195,7 +195,7 @@ export function LibraryPage() {
       ) : filtered.length > 0 ? (
         <>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Gamepad2 className="h-4 w-4" />
+            <Joystick className="h-4 w-4" />
             <span>
               {filtered.length} game{filtered.length === 1 ? '' : 's'}
             </span>
@@ -214,7 +214,7 @@ export function LibraryPage() {
         </>
       ) : games && games.length === 0 ? (
         <div className="rounded-md border border-dashed border-border p-10 text-center">
-          <Gamepad2 className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+          <Joystick className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
           <h3 className="font-amiga text-lg">Your library is empty</h3>
           <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
             Upload Amiga disk images (<code>.adf</code>, <code>.adz</code>, <code>.dms</code>, <code>.zip</code>) to get

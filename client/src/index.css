@@ -117,10 +117,9 @@ html {
   box-shadow: inset 0 0 0 2px var(--stripe-blue);
 }
 
-/* Pixel-art disk badge used on game cover tiles. */
+/* Neutral dark backdrop for the floppy-disk cover tiles. */
 .disk-tile {
-  background: linear-gradient(135deg, oklch(0.4 0.08 256) 0%, oklch(0.26 0.06 274) 100%);
-  image-rendering: pixelated;
+  background: radial-gradient(120% 120% at 50% 0%, oklch(0.26 0.03 274) 0%, oklch(0.15 0.02 274) 100%);
 }
 
 /* Subtle CRT scanlines over the running emulator. */
