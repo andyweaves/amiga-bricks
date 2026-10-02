@@ -1,5 +1,5 @@
 import { createApp, files, server } from '@databricks/appkit';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import { strToU8, zipSync } from 'fflate';
 import { detectModel, filesForGame, groupGames, listRoms, type GameEntry } from './games';
 
@@ -140,6 +140,21 @@ await createApp({
         }
       });
 
+      // Map a delete error to a client response. The App Builder *preview*
+      // sandbox blocks the Unity Catalog file-delete endpoint, so surface that
+      // clearly rather than as a generic failure — it works once deployed.
+      const sendDeleteError = (res: Response, label: string, err: unknown) => {
+        const code = (err as { errorCode?: unknown } | null)?.errorCode;
+        if (code === 'BLOCKED_BY_APP_BUILDER_SANDBOX') {
+          res.status(403).json({
+            error:
+              'Deleting files is blocked in the App Builder preview sandbox. This works once the app is deployed (it then runs as you against the volume).',
+          });
+          return;
+        }
+        res.status(500).json({ error: `Failed to delete ${label}` });
+      };
+
       // Delete a whole game — all of its disks and its save disk — as the
       // signed-in user. The save disk is hidden from the grouped game entry, so
       // this resolves the full file set server-side rather than trusting the
@@ -158,7 +173,7 @@ await createApp({
           res.json({ success: true, deleted: targets });
         } catch (err) {
           console.error('[amiga] delete game failed', err);
-          res.status(500).json({ error: 'Failed to delete game' });
+          sendDeleteError(res, 'game', err);
         }
       });
 
@@ -172,7 +187,7 @@ await createApp({
           res.json({ success: true });
         } catch (err) {
           console.error('[amiga] delete rom failed', err);
-          res.status(500).json({ error: 'Failed to delete ROM' });
+          sendDeleteError(res, 'ROM', err);
         }
       });
 
