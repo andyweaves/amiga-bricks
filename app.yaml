@@ -1,1 +1,12 @@
 command: ['npm', 'run', 'start']
+env:
+  # Unity Catalog Volume that holds Kickstart ROMs (roms/) and disk images
+  # (games/). Change this value to point the app at a different volume when you
+  # deploy. The Files plugin exposes it as volume key "files".
+  - name: DATABRICKS_VOLUME_FILES
+    value: /Volumes/andrew/default/amiga
+  # EmulatorJS asset source: "local" serves the vendored v4.2.3 assets from
+  # client/public/emulatorjs (recommended, no runtime CDN dependency); "cdn"
+  # loads them from https://cdn.emulatorjs.org.
+  - name: EMULATORJS_SOURCE
+    value: local
