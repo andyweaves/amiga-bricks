@@ -13,6 +13,14 @@ export interface EmulatorViewProps {
   onLoadState?: () => void;
 }
 
+type BootState = 'ok' | 'not-isolated' | 'load-failed';
+
+/** The threaded PUAE core needs SharedArrayBuffer, which requires a
+ * cross-origin-isolated top-level page. */
+function isCrossOriginIsolated(): boolean {
+  return typeof SharedArrayBuffer !== 'undefined' && window.crossOriginIsolated === true;
+}
+
 /**
  * Mounts the EmulatorJS (PUAE) runtime. EmulatorJS is a non-React global that
  * cannot be cleanly re-initialized in place, so after the first boot any
@@ -32,11 +40,19 @@ export function EmulatorView({
   onLoadState,
 }: EmulatorViewProps) {
   const booted = useRef(false);
-  const [failed, setFailed] = useState(false);
+  // Determined at render time so we never setState synchronously in the effect.
+  const [state, setState] = useState<BootState>(() => (isCrossOriginIsolated() ? 'ok' : 'not-isolated'));
 
   useEffect(() => {
     if (booted.current) return;
     booted.current = true;
+
+    // PUAE is a threads-required core. Without cross-origin isolation the
+    // browser doesn't expose SharedArrayBuffer, so the "not-isolated" message
+    // (set as the initial state above) stays and we skip booting.
+    if (!isCrossOriginIsolated()) {
+      return;
+    }
 
     if (window.__amigaEmulatorLoaded) {
       window.location.reload();
@@ -53,6 +69,7 @@ export function EmulatorView({
     window.EJS_gameName = gameName;
     window.EJS_pathtodata = ejsPath;
     window.EJS_startOnLoaded = true;
+    window.EJS_threads = true; // required: PUAE is a threaded core
     window.EJS_color = '#ff8800';
     window.EJS_screenCapture = true;
     window.EJS_defaultOptions = {
@@ -70,7 +87,7 @@ export function EmulatorView({
     const script = document.createElement('script');
     script.src = `${ejsPath}loader.js`;
     script.async = true;
-    script.onerror = () => setFailed(true);
+    script.onerror = () => setState('load-failed');
     document.body.appendChild(script);
   }, [ejsPath, gameUrl, biosUrl, gameName, model, gameType, onReady, onSaveState, onLoadState]);
 
@@ -78,7 +95,18 @@ export function EmulatorView({
     <div className="relative aspect-video w-full bg-black">
       <div id="game" />
       <div className="crt-scan" aria-hidden />
-      {failed && (
+      {state === 'not-isolated' && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-black/90 p-6 text-center text-sm text-primary">
+          <AlertTriangle className="h-8 w-8" />
+          <p className="font-amiga">Emulator can’t start here</p>
+          <p className="max-w-md text-muted-foreground">
+            The Amiga core needs a cross-origin-isolated page (for SharedArrayBuffer). Open Amiga Bricks in its own
+            browser tab — it won’t run inside an embedded preview. If you’re already in a tab and still see this, the
+            server isn’t sending the COOP/COEP headers.
+          </p>
+        </div>
+      )}
+      {state === 'load-failed' && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-black/90 p-6 text-center text-sm text-primary">
           <AlertTriangle className="h-8 w-8" />
           <p>

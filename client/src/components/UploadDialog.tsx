@@ -137,13 +137,18 @@ export function UploadDialog({ onUploaded }: { onUploaded: () => void }) {
           </ul>
         )}
 
-        <div className="flex justify-end gap-2">
+        <div className="flex items-center justify-between gap-2">
           <Button variant="ghost" onClick={reset} disabled={busy || items.length === 0}>
-            Clear
+            Clear list
           </Button>
-          <Button onClick={() => void startUpload()} disabled={busy || !pending} className="gap-2">
-            <Upload className="h-4 w-4" /> Upload {items.filter((i) => i.status === 'pending').length || ''}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setOpen(false)} disabled={busy}>
+              Cancel
+            </Button>
+            <Button onClick={() => void startUpload()} disabled={busy || !pending} className="gap-2">
+              <Upload className="h-4 w-4" /> Upload {items.filter((i) => i.status === 'pending').length || ''}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
