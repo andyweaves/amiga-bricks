@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { Alert, AlertDescription, AlertTitle, Badge, Button, Spinner } from '@databricks/appkit-ui/react';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { api, contentUrl, gameKey, gameUrl, type AppConfig, type GameEntry, type RomEntry } from '@/lib/api';
 import { EmulatorView } from '@/components/EmulatorView';
-import { FloppyGlyph } from '@/components/FloppyDisk';
+import { FloppyGlyph, FloppySaveGlyph } from '@/components/FloppyDisk';
 import { SnapshotPanel, type SaveEvent } from '@/components/SnapshotPanel';
 
 const ROM_STORAGE_KEY = 'amiga.selectedRom';
@@ -64,7 +64,7 @@ export function PlayPage() {
             )}
             {game.hasSaveDisk && (
               <Badge variant="secondary" className="gap-1">
-                <Save className="h-3 w-3" /> save disk
+                <FloppySaveGlyph className="h-3 w-3" /> save disk
               </Badge>
             )}
           </div>
