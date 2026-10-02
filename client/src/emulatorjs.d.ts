@@ -5,10 +5,11 @@
 export {};
 
 interface EmulatorJSInstance {
-  screenshot?: () => Promise<Uint8Array> | Uint8Array;
+  /** Captures the core framebuffer (not the WebGL canvas) → never blank. */
+  takeScreenshot?: (source?: unknown, format?: string, upscale?: number) => Promise<{ blob: Blob; format: string }>;
   on?: (event: string, cb: (...args: unknown[]) => void) => void;
   gameManager?: {
-    screenshot?: () => Uint8Array;
+    screenshot?: () => Promise<Uint8Array>;
     Module?: unknown;
   };
 }

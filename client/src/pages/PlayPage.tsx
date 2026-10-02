@@ -106,7 +106,7 @@ export function PlayPage() {
                 onLoadState={onLoad}
               />
             ) : (
-              <div className="flex aspect-video items-center justify-center bg-black">
+              <div className="flex h-[70vh] items-center justify-center bg-black">
                 <Spinner />
               </div>
             )}
