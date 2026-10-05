@@ -6,11 +6,6 @@ powered by [EmulatorJS](https://emulatorjs.org/) (PUAE core). Kickstart ROMs and
 game disk images are stored in a **Unity Catalog Volume** and streamed to the
 emulator on behalf of the signed-in user.
 
-This is an AppKit (TypeScript + React + Express) rebuild of an earlier
-FastAPI/Python prototype. The game-grouping, M3U/ZIP bundling and security-header
-logic were ported over; storage moved from bundled files to a UC Volume, and the
-UI was rebuilt with AppKit components while keeping the retro Workbench look.
-
 ## How it works
 
 - **Storage** — ROMs live under `roms/`, disk images under `games/` and
