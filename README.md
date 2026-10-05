@@ -165,8 +165,7 @@ npm run dev:local                          # http://localhost:8000
 `dev:local` sets `STORAGE_MODE=local`, which skips the Files plugin and reads
 and writes `roms/`, `games/` and `screenshots/` under `LOCAL_STORAGE_DIR`
 (`./data`, git-ignored). Uploads and deletes from the UI work against that
-directory. This mirrors the original prototype, which served files from
-`static/roms` and `static/games`.
+directory.
 
 In local mode the server binds to `127.0.0.1` only. Set `FLASK_RUN_HOST=0.0.0.0`
 to reach it from other devices on your network. Deployed apps keep AppKit's
