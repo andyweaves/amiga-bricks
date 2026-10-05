@@ -4,6 +4,9 @@ client/dist/
 dist/
 build/
 .env
+
+# Local-mode storage (STORAGE_MODE=local): copyrighted ROMs/games, screenshots
+data/
 .databricks/
 .smoke-test/
 test-results/

@@ -5,11 +5,15 @@
 export {};
 
 interface EmulatorJSInstance {
-  /** Captures the core framebuffer (not the WebGL canvas) → never blank. */
+  /** Captures a frame; with source 'canvas' it reads the WebGL canvas (see EmulatorView's preserveDrawingBuffer patch). */
   takeScreenshot?: (source?: unknown, format?: string, upscale?: number) => Promise<{ blob: Blob; format: string }>;
   on?: (event: string, cb: (...args: unknown[]) => void) => void;
+  /** `parent` is the focusable player container that receives keydown/keyup. */
+  elements?: { parent?: HTMLElement };
   gameManager?: {
     screenshot?: () => Promise<Uint8Array>;
+    /** Press (value 1) / release (value 0) RetroPad button `index` for `player`. */
+    simulateInput?: (player: number, index: number, value: number) => void;
     Module?: unknown;
   };
 }
@@ -24,7 +28,6 @@ declare global {
     EJS_pathtodata?: string;
     EJS_paths?: Record<string, string>;
     EJS_startOnLoaded?: boolean;
-    EJS_threads?: boolean;
     EJS_color?: string;
     EJS_screenCapture?: boolean | Record<string, unknown>;
     EJS_defaultOptions?: Record<string, string>;

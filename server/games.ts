@@ -19,8 +19,6 @@
 
 export const GAME_EXTENSIONS = new Set(['.adf', '.adz', '.dms', '.zip']);
 export const ROM_EXTENSIONS = new Set(['.rom', '.bin']);
-export const FLOPPY_TYPES = new Set(['adf', 'adz', 'dms', 'zip']);
-export const HD_TYPES = new Set(['hdf', 'lha']);
 
 /** Sentinel disk number used for save disks (excluded from the regular list). */
 export const SAVE_DISK = -1;
@@ -99,6 +97,22 @@ export function isValidRom(filename: string): boolean {
   return ROM_EXTENSIONS.has(extname(filename)) || filename.toLowerCase().includes('kick');
 }
 
+/**
+ * Whether a client-supplied name is a single plain path segment: non-empty, no
+ * path separators or NULs, not "." / "..", and not a hidden (dot-prefixed)
+ * entry. Used to keep request params from escaping their volume subdirectory.
+ */
+export function isSafeFilename(name: string): boolean {
+  return (
+    name.length > 0 &&
+    name.length <= 255 &&
+    !name.startsWith('.') &&
+    !name.includes('/') &&
+    !name.includes('\\') &&
+    !name.includes('\0')
+  );
+}
+
 function firstGroup(match: RegExpMatchArray): string {
   for (let i = 1; i < match.length; i += 1) {
     if (match[i] !== undefined) return match[i];
@@ -128,18 +142,29 @@ export function parseDiskInfo(stem: string): { base: string; disk: number | null
 }
 
 function slugify(name: string): string {
-  return name
+  const slug = name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+  return slug || 'game';
 }
 
 /**
  * Group a list of game filenames into single- and multi-disk entries.
  * Save disks are excluded from the disk list but flip `hasSaveDisk`.
+ * Slugs are unique: when two base names slugify alike ("Monkey Island" /
+ * "Monkey-Island"), later ones (in filename order) get a "-2", "-3"… suffix.
  */
 export function groupGames(filenames: string[]): GameEntry[] {
   const valid = filenames.filter(isValidGame).sort((a, b) => a.localeCompare(b));
+  const usedSlugs = new Set<string>();
+  const uniqueSlug = (base: string): string => {
+    const root = slugify(base);
+    let slug = root;
+    for (let n = 2; usedSlugs.has(slug); n += 1) slug = `${root}-${n}`;
+    usedSlugs.add(slug);
+    return slug;
+  };
 
   const groups = new Map<string, { disk: number | null; filename: string }[]>();
   for (const filename of valid) {
@@ -159,7 +184,7 @@ export function groupGames(filenames: string[]): GameEntry[] {
       const sorted = [...regular].sort((a, b) => (a.disk ?? 0) - (b.disk ?? 0));
       games.push({
         name: base,
-        slug: slugify(base),
+        slug: uniqueSlug(base),
         filename: null,
         disks: sorted.map((d) => ({ filename: d.filename, disk: d.disk as number })),
         hasSaveDisk,
@@ -186,12 +211,22 @@ export function groupGames(filenames: string[]): GameEntry[] {
  * Resolve every physical file that makes up a game, given a game key.
  * Single-disk games are keyed by their exact filename. Multi-disk games are
  * keyed by slug — this returns all of their disks *and* the save disk (which
- * grouping hides), so a delete can remove the whole game cleanly.
+ * grouping hides), so a delete can remove the whole game cleanly. A
+ * single-disk game takes its save disk with it only when it is the sole game
+ * sharing that base name; otherwise the save disk is left for the others.
  */
 export function filesForGame(filenames: string[], key: string): string[] {
   const valid = filenames.filter(isValidGame);
-  if (valid.includes(key)) return [key];
-  return valid.filter((f) => slugify(parseDiskInfo(stemOf(f)).base) === key);
+  const game = groupGames(valid).find((g) => (g.slug ?? g.filename) === key);
+  if (!game) return [];
+
+  const first = game.disks ? game.disks[0].filename : (game.filename as string);
+  const { base } = parseDiskInfo(stemOf(first));
+  const group = valid.filter((f) => parseDiskInfo(stemOf(f)).base === base);
+  if (game.disks) return group;
+
+  const regular = group.filter((f) => parseDiskInfo(stemOf(f)).disk !== SAVE_DISK);
+  return regular.length === 1 ? group : [first];
 }
 
 /** Detect the Amiga model from a Kickstart ROM filename. */

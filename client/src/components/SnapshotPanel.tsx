@@ -1,35 +1,18 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, Separator } from '@databricks/appkit-ui/react';
 import { Camera, Download, Save, Trash2 } from 'lucide-react';
+import { api, deleteScreenshot, saveScreenshot, screenshotUrl } from '@/lib/api';
 
 export interface SaveEvent {
   kind: 'save' | 'load';
   at: number;
 }
 
-const MAX_SHOTS = 12;
-
-function storageKey(gameId: string) {
-  return `amiga.shots.${gameId}`;
-}
-
-function loadShots(gameId: string): string[] {
-  try {
-    return JSON.parse(localStorage.getItem(storageKey(gameId)) ?? '[]') as string[];
-  } catch {
-    return [];
-  }
-}
-
-function blobToDataUrl(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(new Error('Failed to read screenshot'));
-    reader.readAsDataURL(blob);
-  });
-}
-
+/**
+ * Screenshots are stored server-side (the UC volume, or the local data dir in
+ * local mode) under screenshots/<gameId>/, so they persist across browsers and
+ * aren't bound by localStorage's ~5 MB quota.
+ */
 export function SnapshotPanel({
   gameId,
   gameName,
@@ -39,52 +22,59 @@ export function SnapshotPanel({
   gameName: string;
   saveEvents: SaveEvent[];
 }) {
-  const [shots, setShots] = useState<string[]>(() => loadShots(gameId));
+  const [shots, setShots] = useState<string[]>([]);
   const [note, setNote] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    setShots(loadShots(gameId));
+    let cancelled = false;
+    api
+      .screenshots(gameId)
+      .then((names) => {
+        if (!cancelled) setShots(names);
+      })
+      .catch(() => {
+        if (!cancelled) setNote('Couldn’t load saved screenshots.');
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [gameId]);
 
-  const persist = useCallback(
-    (next: string[]) => {
-      setShots(next);
-      try {
-        localStorage.setItem(storageKey(gameId), JSON.stringify(next));
-      } catch {
-        /* quota — ignore */
-      }
-    },
-    [gameId]
-  );
-
-  // Use EmulatorJS's own screenshot API — it reads the core framebuffer, so it
-  // works even though the WebGL canvas doesn't preserve its drawing buffer
-  // (plain canvas.toDataURL() returns a blank image).
   const capture = async () => {
     const emu = window.EJS_emulator;
     if (!emu || typeof emu.takeScreenshot !== 'function') {
       setNote('Start the game first, then capture.');
       return;
     }
+    setBusy(true);
     try {
-      // 'canvas' source + preserveDrawingBuffer (set in EmulatorView) captures
+      // 'canvas' source + preserveDrawingBuffer (forced in EmulatorView) captures
       // the live frame; the retroarch source returns black (gpu screenshot off).
-      const { blob } = await emu.takeScreenshot('canvas');
-      const data = await blobToDataUrl(blob);
+      const { blob } = await emu.takeScreenshot('canvas', 'png');
+      const name = await saveScreenshot(gameId, blob);
       setNote(null);
-      persist([data, ...shots].slice(0, MAX_SHOTS));
-    } catch {
-      setNote('Couldn’t capture a screenshot — try again once the game is running.');
+      setShots((prev) => [name, ...prev]);
+    } catch (err) {
+      setNote(`Couldn’t save a screenshot — ${(err as Error).message}`);
+    } finally {
+      setBusy(false);
     }
   };
 
-  const remove = (idx: number) => persist(shots.filter((_, i) => i !== idx));
+  const remove = async (name: string) => {
+    try {
+      await deleteScreenshot(gameId, name);
+      setShots((prev) => prev.filter((n) => n !== name));
+    } catch (err) {
+      setNote((err as Error).message);
+    }
+  };
 
-  const download = (data: string, idx: number) => {
+  const download = (name: string, idx: number) => {
     const a = document.createElement('a');
-    a.href = data;
-    a.download = `${gameName.replace(/[^a-z0-9]+/gi, '_')}_${idx + 1}.png`;
+    a.href = screenshotUrl(gameId, name);
+    a.download = `${gameName.replace(/[^a-z0-9]+/gi, '_')}_${shots.length - idx}.png`;
     a.click();
   };
 
@@ -95,7 +85,7 @@ export function SnapshotPanel({
           <h3 className="flex items-center gap-2 font-amiga text-sm">
             <Camera className="h-4 w-4" /> Screenshots
           </h3>
-          <Button size="sm" variant="outline" className="gap-1.5" onClick={() => void capture()}>
+          <Button size="sm" variant="outline" className="gap-1.5" disabled={busy} onClick={() => void capture()}>
             <Camera className="h-3.5 w-3.5" /> Capture
           </Button>
         </div>
@@ -104,17 +94,30 @@ export function SnapshotPanel({
           <p className="text-xs text-muted-foreground">No screenshots yet. Hit Capture while a game is running.</p>
         ) : (
           <div className="grid grid-cols-2 gap-2">
-            {shots.map((data, idx) => (
-              <div
-                key={`${data.length}-${data.slice(-24)}`}
-                className="group relative overflow-hidden rounded border border-border"
-              >
-                <img src={data} alt={`Screenshot ${idx + 1}`} className="aspect-video w-full object-cover" />
+            {shots.map((name, idx) => (
+              <div key={name} className="group relative overflow-hidden rounded border border-border">
+                <img
+                  src={screenshotUrl(gameId, name)}
+                  alt={`Screenshot from ${new Date(parseInt(name, 10)).toLocaleString()}`}
+                  className="aspect-video w-full object-cover"
+                />
                 <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60 opacity-0 transition-opacity group-hover:opacity-100">
-                  <Button size="icon" variant="secondary" className="h-7 w-7" onClick={() => download(data, idx)}>
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="h-7 w-7"
+                    aria-label="Download screenshot"
+                    onClick={() => download(name, idx)}
+                  >
                     <Download className="h-3.5 w-3.5" />
                   </Button>
-                  <Button size="icon" variant="destructive" className="h-7 w-7" onClick={() => remove(idx)}>
+                  <Button
+                    size="icon"
+                    variant="destructive"
+                    className="h-7 w-7"
+                    aria-label="Delete screenshot"
+                    onClick={() => void remove(name)}
+                  >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { detectModel, filesForGame, groupGames, listRoms, parseDiskInfo } from './games';
+import { detectModel, filesForGame, groupGames, isSafeFilename, listRoms, parseDiskInfo } from './games';
 
 describe('parseDiskInfo', () => {
   test('single-disk game has no disk number', () => {
@@ -78,6 +78,49 @@ describe('filesForGame', () => {
   test('unknown key resolves to nothing', () => {
     expect(filesForGame(files, 'does-not-exist')).toEqual([]);
   });
+
+  test('games whose names slugify alike are resolved separately', () => {
+    const clash = [
+      'Monkey Island_Disk 1.adf',
+      'Monkey Island_Disk 2.adf',
+      'Monkey-Island_d1.adf',
+      'Monkey-Island_d2.adf',
+    ];
+    expect(groupGames(clash).map((g) => g.slug)).toEqual(['monkey-island', 'monkey-island-2']);
+    expect(filesForGame(clash, 'monkey-island').sort()).toEqual([
+      'Monkey Island_Disk 1.adf',
+      'Monkey Island_Disk 2.adf',
+    ]);
+    expect(filesForGame(clash, 'monkey-island-2').sort()).toEqual(['Monkey-Island_d1.adf', 'Monkey-Island_d2.adf']);
+  });
+
+  test('single-disk game takes its own save disk with it', () => {
+    expect(filesForGame(['Elite.adf', 'Elite savedisk.adf'], 'Elite.adf').sort()).toEqual([
+      'Elite savedisk.adf',
+      'Elite.adf',
+    ]);
+  });
+
+  test('a shared save disk is kept when other games still use it', () => {
+    const shared = ['Game.adf', 'Game.adz', 'Game savedisk.adf'];
+    expect(filesForGame(shared, 'Game.adf')).toEqual(['Game.adf']);
+  });
+});
+
+describe('isSafeFilename', () => {
+  test.each(['Monkey Island_Disk 1.adf', 'kick13.rom', 'Game (Disk 1)[cr FLT].adf', '1700000000000.png'])(
+    'accepts %s',
+    (name) => {
+      expect(isSafeFilename(name)).toBe(true);
+    }
+  );
+
+  test.each(['', '.', '..', '../roms/kick.rom', 'a/b.adf', 'a\\b.adf', '.hidden', 'nul\0.adf'])(
+    'rejects %j',
+    (name) => {
+      expect(isSafeFilename(name)).toBe(false);
+    }
+  );
 });
 
 describe('detectModel', () => {
