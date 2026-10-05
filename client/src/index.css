@@ -2,26 +2,28 @@
 
 /* ------------------------------------------------------------------ *
  * Amiga Bricks theme
- * Modern AppKit shell dressed in a Commodore Amiga Workbench palette:
- * deep navy surfaces, Workbench orange primary, electric-blue accents,
- * a rainbow top stripe, chunky window chrome and an optional CRT scan.
+ * AppKit shell dressed as the Commodore Amiga Workbench (ported from the
+ * original app): true Workbench navy, Workbench orange primary, an 8px
+ * rainbow band, grey bevelled Workbench 2.0 windows, the orange pixel-art
+ * pointer and an optional CRT scan.
  * ------------------------------------------------------------------ */
 
 :root {
   --radius: 0.5rem;
 
-  --background: oklch(0.16 0.045 274);
+  /* Workbench navy (#000080) with slightly lifted navy panels. */
+  --background: #000080;
   --foreground: oklch(0.97 0.01 250);
-  --card: oklch(0.215 0.05 274);
+  --card: #0a1494;
   --card-foreground: oklch(0.97 0.01 250);
-  --popover: oklch(0.2 0.05 274);
+  --popover: #0a1494;
   --popover-foreground: oklch(0.97 0.01 250);
   --primary: oklch(0.74 0.165 56);
   --primary-foreground: oklch(0.18 0.03 60);
-  --secondary: oklch(0.3 0.055 274);
+  --secondary: #1c2aa6;
   --secondary-foreground: oklch(0.97 0.01 250);
-  --muted: oklch(0.3 0.05 274);
-  --muted-foreground: oklch(0.74 0.03 262);
+  --muted: #1c2aa6;
+  --muted-foreground: #b9c3ff;
   --accent: oklch(0.56 0.15 256);
   --accent-foreground: oklch(0.98 0 0);
   --destructive: oklch(0.62 0.23 25);
@@ -30,8 +32,8 @@
   --success-foreground: oklch(0.14 0.02 160);
   --warning: oklch(0.83 0.16 85);
   --warning-foreground: oklch(0.2 0.03 240);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 15%);
+  --border: oklch(1 0 0 / 22%);
+  --input: oklch(1 0 0 / 28%);
   --ring: oklch(0.74 0.165 56);
 
   --chart-1: oklch(0.74 0.165 56);
@@ -40,11 +42,11 @@
   --chart-4: oklch(0.83 0.16 85);
   --chart-5: oklch(0.65 0.25 16);
 
-  --sidebar: oklch(0.2 0.05 274);
+  --sidebar: #0a1494;
   --sidebar-foreground: oklch(0.97 0.01 250);
   --sidebar-primary: oklch(0.74 0.165 56);
   --sidebar-primary-foreground: oklch(0.18 0.03 60);
-  --sidebar-accent: oklch(0.3 0.055 274);
+  --sidebar-accent: #1c2aa6;
   --sidebar-accent-foreground: oklch(0.97 0.01 250);
   --sidebar-border: oklch(1 0 0 / 12%);
   --sidebar-ring: oklch(0.56 0.15 256);
@@ -55,6 +57,26 @@
   --stripe-yellow: #ffff00;
   --stripe-green: #00cc00;
   --stripe-blue: #0055aa;
+
+  /* Workbench 2.0 window chrome */
+  --wb-grey: #aaaaaa;
+  --wb-shadow: #333333;
+  --wb-navy: #000080;
+
+  /*
+   * Classic Amiga Workbench pointer — pixel-art SVG (2x2 "pixels" on a
+   * 32x32 canvas): black outline, orange fill. Hotspot is the top-left tip.
+   */
+  --amiga-cursor: url('data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2732%27%20height%3D%2732%27%20shape-rendering%3D%27crispEdges%27%3E%3Crect%20x%3D%270%27%20y%3D%270%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%272%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%272%27%20y%3D%272%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%274%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%272%27%20y%3D%274%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%274%27%20y%3D%274%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%276%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%272%27%20y%3D%276%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%274%27%20y%3D%276%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%276%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%278%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%272%27%20y%3D%278%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%274%27%20y%3D%278%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%278%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%278%27%20y%3D%278%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2710%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%272%27%20y%3D%2710%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%274%27%20y%3D%2710%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2710%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%278%27%20y%3D%2710%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%2710%27%20y%3D%2710%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2712%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%272%27%20y%3D%2712%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%274%27%20y%3D%2712%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2712%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%278%27%20y%3D%2712%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%2710%27%20y%3D%2712%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2712%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2714%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%272%27%20y%3D%2714%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%274%27%20y%3D%2714%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2714%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%278%27%20y%3D%2714%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%2710%27%20y%3D%2714%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2714%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%2714%27%20y%3D%2714%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2716%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%272%27%20y%3D%2716%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%274%27%20y%3D%2716%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2716%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%278%27%20y%3D%2716%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%2710%27%20y%3D%2716%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2716%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%2714%27%20y%3D%2716%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%2716%27%20y%3D%2716%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2718%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%272%27%20y%3D%2718%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%274%27%20y%3D%2718%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2718%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%278%27%20y%3D%2718%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%2710%27%20y%3D%2718%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2718%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2714%27%20y%3D%2718%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2716%27%20y%3D%2718%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2720%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%272%27%20y%3D%2720%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%274%27%20y%3D%2720%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2720%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%278%27%20y%3D%2720%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%2710%27%20y%3D%2720%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2720%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2722%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%272%27%20y%3D%2722%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2722%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%278%27%20y%3D%2722%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%2710%27%20y%3D%2722%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2722%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2724%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%278%27%20y%3D%2724%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%2710%27%20y%3D%2724%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23e40%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2724%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%278%27%20y%3D%2726%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2710%27%20y%3D%2726%27%20width%3D%272%27%20height%3D%272%27%20fill%3D%27%23000%27%2F%3E%3C%2Fsvg%3E');
+}
+
+/* The Workbench pointer everywhere, with the platform cursor as fallback. */
+*,
+*::before,
+*::after {
+  cursor:
+    var(--amiga-cursor) 0 0,
+    auto;
 }
 
 html {
@@ -75,7 +97,7 @@ html {
 
 /* Rainbow stripe — the signature Amiga boot band. */
 .rainbow-stripe {
-  height: 4px;
+  height: 8px;
   width: 100%;
   background: linear-gradient(
     90deg,
@@ -87,15 +109,33 @@ html {
   );
 }
 
-/* Workbench-style window chrome around the emulator. */
+/* Mirrored band (blue → red) for the edge under the header. */
+.rainbow-stripe-reverse {
+  background: linear-gradient(
+    90deg,
+    var(--stripe-blue) 0 20%,
+    var(--stripe-green) 20% 40%,
+    var(--stripe-yellow) 40% 60%,
+    var(--stripe-orange) 60% 80%,
+    var(--stripe-red) 80% 100%
+  );
+}
+
+/* Workbench screen title: uppercase, letter-spaced, hard drop shadow. */
+.wb-title {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* Workbench 2.0 window: grey frame, bevelled (light top-left, dark bottom-right). */
 .wb-window {
-  border: 2px solid var(--stripe-blue);
-  border-radius: 6px;
-  overflow: hidden;
-  background: #000;
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.6),
-    0 18px 50px -12px rgba(0, 0, 0, 0.8);
+  background: var(--wb-grey);
+  border: 2px solid #fff;
+  border-right-color: var(--wb-shadow);
+  border-bottom-color: var(--wb-shadow);
+  padding: 3px;
+  box-shadow: 0 18px 50px -12px rgba(0, 0, 0, 0.8);
 }
 
 .wb-titlebar {
@@ -103,23 +143,72 @@ html {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.3rem 0.6rem;
-  background: repeating-linear-gradient(90deg, var(--stripe-blue) 0, var(--stripe-blue) 3px, #0a4a94 3px, #0a4a94 6px);
+  margin-bottom: 3px;
+  padding: 2px 8px;
+  background: linear-gradient(90deg, var(--wb-navy) 0%, #0066bb 100%);
   color: #fff;
   font-size: 0.75rem;
+  letter-spacing: 0.05em;
 }
 
 .wb-gadget {
-  width: 14px;
-  height: 12px;
-  background: #fff;
-  border: 2px solid #001a4d;
-  box-shadow: inset 0 0 0 2px var(--stripe-blue);
+  width: 18px;
+  height: 14px;
+  background: var(--wb-grey);
+  border: 1px solid #fff;
+  border-right-color: var(--wb-shadow);
+  border-bottom-color: var(--wb-shadow);
+}
+
+/* The emulator display, sunk into the window. */
+.wb-content {
+  position: relative;
+  background: #000;
+  border: 2px inset #666;
+}
+
+/* Screen-title-style status line under the emulator. */
+.wb-status {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 3px;
+  padding: 2px 8px;
+  background: var(--wb-navy);
+  color: #fff;
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+}
+.wb-status .ok {
+  color: #00cc00;
+}
+.wb-status .missing {
+  color: #ff0000;
+}
+
+/* Workbench requester: grey bevelled panel with black text. */
+.wb-requester {
+  background: var(--wb-grey);
+  border: 2px solid #fff;
+  border-right-color: var(--wb-shadow);
+  border-bottom-color: var(--wb-shadow);
+  padding: 1rem 1.5rem;
+  color: #000;
+}
+.wb-requester h2 {
+  margin-bottom: 0.5rem;
+  color: var(--wb-navy);
+  text-decoration: underline;
+}
+.wb-requester code {
+  padding: 0.1rem 0.4rem;
+  background: var(--wb-navy);
+  color: var(--stripe-orange);
 }
 
 /* Neutral dark backdrop for the floppy-disk cover tiles. */
 .disk-tile {
-  background: radial-gradient(120% 120% at 50% 0%, oklch(0.26 0.03 274) 0%, oklch(0.15 0.02 274) 100%);
+  background: radial-gradient(120% 120% at 50% 0%, #1c2aa6 0%, #000055 100%);
 }
 
 /* Subtle CRT scanlines over the running emulator. */

@@ -173,16 +173,16 @@ export function LibraryPage() {
 
       {/* ROM setup notice */}
       {!loading && roms && roms.length === 0 && (
-        <Alert>
-          <HardDrive className="h-4 w-4" />
-          <AlertTitle className="font-amiga">No Kickstart ROM found</AlertTitle>
-          <AlertDescription>
-            <span>
-              Upload a Kickstart ROM (.rom or .bin) with the Upload button. Kickstart 1.3 is recommended for most
-              classic A500 games. ROMs are copyrighted — obtain them legally (e.g. via Amiga Forever).
-            </span>
-          </AlertDescription>
-        </Alert>
+        <div className="wb-requester font-amiga" role="alert">
+          <h2 className="flex items-center gap-2 text-base">
+            <HardDrive className="h-4 w-4" /> No Kickstart ROM found
+          </h2>
+          <p className="text-sm leading-relaxed">
+            Upload a Kickstart ROM (<code>.rom</code> or <code>.bin</code>) with the Upload button — it goes to{' '}
+            <code>roms/</code>. Kickstart 1.3 is recommended for most classic A500 games. ROMs are copyrighted — obtain
+            them legally (e.g. via Amiga Forever).
+          </p>
+        </div>
       )}
 
       {/* Grid */}

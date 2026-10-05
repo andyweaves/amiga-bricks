@@ -15,8 +15,8 @@ UI was rebuilt with AppKit components while keeping the retro Workbench look.
 
 - **Storage** — ROMs live under `roms/`, disk images under `games/` and
   screenshots under `screenshots/<game>/` inside a Unity Catalog Volume. The
-  volume path is set by the `DATABRICKS_VOLUME_FILES` env var in `app.yaml` and
-  is fully configurable at deploy time. For local development the same layout
+  volume is the app's `files` resource, set with the bundle's `volume` variable
+  in `databricks.yml` and exposed to the app as `DATABRICKS_VOLUME_FILES`. For local development the same layout
   can live in a plain directory instead (see [Running locally](#running-locally)).
 - **Access** — the AppKit **Files plugin** runs in `on-behalf-of-user` mode, so
   every read/write/upload executes as the signed-in user and is governed by
@@ -71,7 +71,13 @@ lists if only some could be removed.
 
 ## Supported formats
 
-- Disk images: `.adf`, `.adz`, `.dms`, `.zip`
+- Disk images: `.adf`, `.adz`, `.dms`
+- `.zip` uploads are unpacked in the browser and their disk images uploaded
+  individually, so multi-disk games go through the M3U bundle like separate
+  ADFs (a zip handed to the emulator directly only boots its first disk).
+  Generic entry names (`disk1.adf`) are renamed after the zip
+  (`<zip name> (Disk 1).adf`). Zips already in the volume still play, as a
+  single file.
 - Kickstart ROMs: `.rom`, `.bin` (or any filename containing `kick`)
 - `.ipf` is **not** supported (needs the proprietary `capsimg` library).
 
@@ -92,12 +98,12 @@ grouping. Grouping logic lives in `server/games.ts` and is covered by
 
 ## Configuration
 
-| Variable                  | Default  | Description                                                          |
-| ------------------------- | -------- | -------------------------------------------------------------------- |
-| `DATABRICKS_VOLUME_FILES` | —        | Volume path, e.g. `/Volumes/<catalog>/<schema>/<volume>`             |
-| `EMULATORJS_SOURCE`       | `local`  | `local` (vendored assets) or `cdn`                                   |
-| `STORAGE_MODE`            | `volume` | `volume` (UC Volume via Files plugin) or `local` (directory on disk) |
-| `LOCAL_STORAGE_DIR`       | `./data` | Root directory for `STORAGE_MODE=local`                              |
+| Variable                  | Default  | Description                                                                                        |
+| ------------------------- | -------- | -------------------------------------------------------------------------------------------------- |
+| `DATABRICKS_VOLUME_FILES` | —        | Volume path, e.g. `/Volumes/<catalog>/<schema>/<volume>` (deployed: from the `files` app resource) |
+| `EMULATORJS_SOURCE`       | `local`  | `local` (vendored assets) or `cdn`                                                                 |
+| `STORAGE_MODE`            | `volume` | `volume` (UC Volume via Files plugin) or `local` (directory on disk)                               |
+| `LOCAL_STORAGE_DIR`       | `./data` | Root directory for `STORAGE_MODE=local`                                                            |
 
 ## Requirements for use
 
@@ -231,13 +237,30 @@ npm run test        # vitest (game-grouping + filename-safety unit tests)
 
 ## Deploying to Databricks Apps
 
-The repo ships an `app.yaml`, so it deploys with the Databricks CLI:
+The repo is a [Declarative Automation Bundle](https://docs.databricks.com/dev-tools/bundles/)
+(`databricks.yml`). It defines the app, binds the Unity Catalog volume as the
+app's `files` resource (`WRITE_VOLUME`), requests the `files.files` user API
+scope for on-behalf-of-user file access, grants `CAN_USE` to `users`, and has
+`dev` / `prod` targets.
 
 ```bash
-databricks apps deploy <app-name>
+databricks bundle validate --strict -t dev --profile <profile>
+databricks bundle deploy -t dev --profile <profile> --var volume=<catalog>.<schema>.<volume>
+databricks bundle run amiga_bricks -t dev --profile <profile>
 ```
 
-Point the deployed app at your volume by editing `DATABRICKS_VOLUME_FILES` in
-`app.yaml`. For repeatable, environment-targeted deploys, add a
-[Databricks Asset Bundle](https://docs.databricks.com/dev-tools/bundles/)
-(`databricks.yml`) and use `databricks bundle deploy`.
+The `volume` variable defaults to `andrew.default.amiga`; override it with
+`--var` or per target in `databricks.yml`. `app.yaml` reads the volume path from
+the resource (`valueFrom: files`), so there's nothing to edit there. The `dev`
+target runs in development mode (resources are prefixed with your username);
+use `-t prod` for the shared deployment.
+
+To bring an app that already exists (for example one created in App Builder)
+under the bundle instead of creating a new one:
+
+```bash
+databricks bundle deployment bind amiga_bricks <existing-app-name> -t prod --profile <profile>
+```
+
+`databricks apps deploy` still works for a quick one-off deploy, but the app
+must then have a volume resource named `files` configured in the UI.

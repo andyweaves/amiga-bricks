@@ -1,10 +1,12 @@
 command: ['npm', 'run', 'start']
 env:
-  # Unity Catalog Volume that holds Kickstart ROMs (roms/) and disk images
-  # (games/). Change this value to point the app at a different volume when you
-  # deploy. The Files plugin exposes it as volume key "files".
+  # Unity Catalog Volume that holds Kickstart ROMs (roms/), disk images (games/)
+  # and screenshots. Resolved from the app's "files" volume resource (declared in
+  # databricks.yml; set the volume with the bundle's `volume` variable) to
+  # /Volumes/<catalog>/<schema>/<volume>. The Files plugin reads it as volume
+  # key "files".
   - name: DATABRICKS_VOLUME_FILES
-    value: /Volumes/andrew/default/amiga
+    valueFrom: files
   # EmulatorJS asset source: "local" serves the vendored v4.2.3 assets from
   # client/public/emulatorjs (recommended, no runtime CDN dependency); "cdn"
   # loads them from https://cdn.emulatorjs.org.

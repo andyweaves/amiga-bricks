@@ -101,21 +101,32 @@ export function PlayPage() {
                 <span className="wb-gadget" />
               </div>
             </div>
-            {ready ? (
-              <EmulatorView
-                ejsPath={config.emulatorjs_path}
-                gameUrl={gameUrl(game)}
-                biosUrl={contentUrl('roms', rom.filename)}
-                gameName={game.name}
-                model={rom.model}
-                onSaveState={onSave}
-                onLoadState={onLoad}
-              />
-            ) : (
-              <div className="flex h-[70vh] items-center justify-center bg-black">
-                <Spinner />
-              </div>
-            )}
+            <div className="wb-content">
+              {ready ? (
+                <EmulatorView
+                  ejsPath={config.emulatorjs_path}
+                  gameUrl={gameUrl(game)}
+                  biosUrl={contentUrl('roms', rom.filename)}
+                  gameName={game.name}
+                  model={rom.model}
+                  onSaveState={onSave}
+                  onLoadState={onLoad}
+                />
+              ) : (
+                <div className="flex h-[70vh] items-center justify-center bg-black">
+                  <Spinner />
+                </div>
+              )}
+            </div>
+            <div className="wb-status font-amiga">
+              <span className={rom ? 'ok' : 'missing'}>ROM: {rom ? `${rom.name} (${rom.model})` : 'none'}</span>
+              <span className={game ? 'ok' : 'missing'}>
+                Game:{' '}
+                {game
+                  ? `${game.disks ? `${game.disks.length} disks` : '1 disk'}${game.hasSaveDisk ? ' + save disk' : ''}`
+                  : 'none'}
+              </span>
+            </div>
           </div>
 
           {/* Snapshots / save-state sidebar */}

@@ -1,6 +1,7 @@
-<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M64 64H224V224H64V64Z" fill="#FABFBA"/>
-<path d="M440 448L280 448L280 352C280 316.654 308.654 288 344 288L376 288C411.346 288 440 316.654 440 352L440 448Z" fill="#FABFBA"/>
-<path d="M152 288L240 448H64L152 288Z" fill="#FF5F46"/>
-<path d="M280 148C280 101.608 317.608 64 364 64V64C410.392 64 448 101.608 448 148V148C448 194.392 410.392 232 364 232V232C317.608 232 280 194.392 280 148V148Z" fill="#FF5F46"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="4" fill="#000080"/>
+  <polygon points="5,16 11,23 27,5 23,5 11,19 9,15" fill="#ff0000"/>
+  <polygon points="5,18 11,25 27,7 23,7 11,21 9,17" fill="#ff8800"/>
+  <polygon points="5,20 11,27 27,9 23,9 11,23 9,19" fill="#ffff00"/>
+  <polygon points="5,22 11,29 27,11 23,11 11,25 9,21" fill="#00cc00"/>
 </svg>
