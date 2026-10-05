@@ -31,7 +31,7 @@ function Layout() {
           </div>
         </Link>
       </header>
-      <div className="rainbow-stripe" />
+      <div className="rainbow-stripe rainbow-stripe-reverse" />
 
       <main className="flex-1 p-4 md:p-6">
         <Outlet />

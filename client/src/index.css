@@ -109,6 +109,18 @@ html {
   );
 }
 
+/* Mirrored band (blue → red) for the edge under the header. */
+.rainbow-stripe-reverse {
+  background: linear-gradient(
+    90deg,
+    var(--stripe-blue) 0 20%,
+    var(--stripe-green) 20% 40%,
+    var(--stripe-yellow) 40% 60%,
+    var(--stripe-orange) 60% 80%,
+    var(--stripe-red) 80% 100%
+  );
+}
+
 /* Workbench screen title: uppercase, letter-spaced, hard drop shadow. */
 .wb-title {
   text-transform: uppercase;
