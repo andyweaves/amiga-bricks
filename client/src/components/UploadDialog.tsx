@@ -163,7 +163,7 @@ export function UploadDialog({ onUploaded }: { onUploaded: () => void }) {
           </Button>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setOpen(false)} disabled={busy}>
-              Cancel
+              Close
             </Button>
             <Button onClick={() => void startUpload()} disabled={busy || !pending} className="gap-2">
               <Upload className="h-4 w-4" /> Upload {items.filter((i) => i.status === 'pending').length || ''}

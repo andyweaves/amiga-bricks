@@ -20,7 +20,7 @@ function Layout() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <div className="rainbow-stripe" />
-      <header className="flex items-center gap-3 border-b-2 border-white px-4 py-3 md:px-6">
+      <header className="flex items-center gap-3 px-4 py-3 md:px-6">
         <Link to="/" className="flex items-center gap-3">
           <AmigaLogo />
           <div className="leading-tight">
@@ -31,6 +31,7 @@ function Layout() {
           </div>
         </Link>
       </header>
+      <div className="rainbow-stripe" />
 
       <main className="flex-1 p-4 md:p-6">
         <Outlet />
