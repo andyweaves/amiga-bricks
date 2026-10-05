@@ -7,7 +7,6 @@ export interface EmulatorViewProps {
   biosUrl: string;
   gameName: string;
   model: string;
-  gameType: string;
   onReady?: () => void;
   onSaveState?: () => void;
   onLoadState?: () => void;
@@ -57,7 +56,6 @@ export function EmulatorView({
   biosUrl,
   gameName,
   model,
-  gameType,
   onReady,
   onSaveState,
   onLoadState,
@@ -78,8 +76,6 @@ export function EmulatorView({
     // Must happen before EmulatorJS creates its WebGL context so screenshots work.
     enablePreserveDrawingBuffer();
 
-    const whdMode = gameType === 'lha' ? 'files' : 'disabled';
-
     window.EJS_player = '#game';
     window.EJS_core = 'puae';
     window.EJS_gameUrl = gameUrl;
@@ -95,7 +91,6 @@ export function EmulatorView({
       puae_video_standard: 'PAL',
       puae_floppy_speed: '800',
       puae_floppy_multidrive: 'enabled',
-      puae_use_whdload: whdMode,
     };
     window.EJS_onGameStart = () => onReady?.();
     window.EJS_onSaveState = () => onSaveState?.();
@@ -106,7 +101,7 @@ export function EmulatorView({
     script.async = true;
     script.onerror = () => setFailed(true);
     document.body.appendChild(script);
-  }, [ejsPath, gameUrl, biosUrl, gameName, model, gameType, onReady, onSaveState, onLoadState]);
+  }, [ejsPath, gameUrl, biosUrl, gameName, model, onReady, onSaveState, onLoadState]);
 
   return (
     <div className="relative w-full bg-black">
