@@ -20,12 +20,14 @@ function Layout() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <div className="rainbow-stripe" />
-      <header className="flex items-center gap-3 border-b border-border px-4 py-3 md:px-6">
+      <header className="flex items-center gap-3 border-b-2 border-white px-4 py-3 md:px-6">
         <Link to="/" className="flex items-center gap-3">
           <AmigaLogo />
           <div className="leading-tight">
-            <h1 className="font-amiga text-xl text-foreground">Amiga Bricks</h1>
-            <p className="text-xs text-muted-foreground">EmulatorJS · PUAE core · Databricks Apps</p>
+            <h1 className="wb-title font-amiga text-xl text-foreground">Amiga Bricks</h1>
+            <p className="font-amiga text-xs tracking-wide text-[var(--stripe-orange)]">
+              EmulatorJS · PUAE core · Databricks Apps
+            </p>
           </div>
         </Link>
       </header>

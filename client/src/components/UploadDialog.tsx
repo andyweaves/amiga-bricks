@@ -10,9 +10,10 @@ import {
 } from '@databricks/appkit-ui/react';
 import { CheckCircle2, Upload, XCircle } from 'lucide-react';
 import { uploadFile } from '@/lib/api';
+import { DISK_IMAGE_EXT, unpackDiskImages } from '@/lib/zip';
 
 const ROM_EXT = /\.(rom|bin)$/i;
-const GAME_EXT = /\.(adf|adz|dms|zip)$/i;
+const ZIP_EXT = /\.zip$/i;
 
 type Status = 'pending' | 'uploading' | 'done' | 'error';
 interface Item {
@@ -20,12 +21,14 @@ interface Item {
   dest: string;
   status: Status;
   message?: string;
+  /** Zip this disk image was unpacked from, if any. */
+  from?: string;
 }
 
 /** Decide the target subfolder from the filename. */
 function destFor(file: File): string | null {
   if (ROM_EXT.test(file.name) || file.name.toLowerCase().includes('kick')) return `roms/${file.name}`;
-  if (GAME_EXT.test(file.name)) return `games/${file.name}`;
+  if (DISK_IMAGE_EXT.test(file.name)) return `games/${file.name}`;
   return null;
 }
 
@@ -35,10 +38,25 @@ export function UploadDialog({ onUploaded }: { onUploaded: () => void }) {
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  function addFiles(files: FileList | null) {
+  async function addFiles(files: FileList | null) {
     if (!files) return;
     const next: Item[] = [];
     for (const file of Array.from(files)) {
+      // Zips are unpacked so their disks upload (and group) as separate images.
+      if (ZIP_EXT.test(file.name)) {
+        try {
+          const disks = await unpackDiskImages(file);
+          if (disks.length === 0) {
+            next.push({ file, dest: '', status: 'error', message: 'No .adf/.adz/.dms disk images in this zip' });
+          }
+          for (const disk of disks) {
+            next.push({ file: disk, dest: `games/${disk.name}`, status: 'pending', from: file.name });
+          }
+        } catch {
+          next.push({ file, dest: '', status: 'error', message: 'Could not read this zip' });
+        }
+        continue;
+      }
       const dest = destFor(file);
       next.push(
         dest ? { file, dest, status: 'pending' } : { file, dest: '', status: 'error', message: 'Unsupported file type' }
@@ -89,8 +107,9 @@ export function UploadDialog({ onUploaded }: { onUploaded: () => void }) {
         <DialogHeader>
           <DialogTitle className="font-amiga">Upload to volume</DialogTitle>
           <DialogDescription>
-            Kickstart ROMs (.rom/.bin) go to <code>roms/</code>; disk images (.adf/.adz/.dms/.zip) go to{' '}
-            <code>games/</code>. Files are written to the Unity Catalog volume as you.
+            Kickstart ROMs (.rom/.bin) go to <code>roms/</code>; disk images (.adf/.adz/.dms) go to <code>games/</code>.
+            Zips are unpacked and their disk images uploaded individually, so multi-disk games are grouped. Files are
+            written to the Unity Catalog volume as you.
           </DialogDescription>
         </DialogHeader>
 
@@ -99,7 +118,7 @@ export function UploadDialog({ onUploaded }: { onUploaded: () => void }) {
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => {
             e.preventDefault();
-            addFiles(e.dataTransfer.files);
+            void addFiles(e.dataTransfer.files);
           }}
         >
           <Upload className="h-6 w-6" />
@@ -110,7 +129,7 @@ export function UploadDialog({ onUploaded }: { onUploaded: () => void }) {
             multiple
             accept=".rom,.bin,.adf,.adz,.dms,.zip"
             className="hidden"
-            onChange={(e) => addFiles(e.target.files)}
+            onChange={(e) => void addFiles(e.target.files)}
           />
         </label>
 
@@ -124,6 +143,7 @@ export function UploadDialog({ onUploaded }: { onUploaded: () => void }) {
                 <span className="min-w-0 flex-1 truncate" title={it.file.name}>
                   {it.file.name}
                   {it.dest && <span className="ml-1 text-xs text-muted-foreground">→ {it.dest.split('/')[0]}/</span>}
+                  {it.from && <span className="ml-1 text-xs text-muted-foreground">(from {it.from})</span>}
                 </span>
                 {it.status === 'uploading' && <Spinner />}
                 {it.status === 'done' && <CheckCircle2 className="h-4 w-4 text-[var(--success)]" />}

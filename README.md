@@ -71,7 +71,13 @@ lists if only some could be removed.
 
 ## Supported formats
 
-- Disk images: `.adf`, `.adz`, `.dms`, `.zip`
+- Disk images: `.adf`, `.adz`, `.dms`
+- `.zip` uploads are unpacked in the browser and their disk images uploaded
+  individually, so multi-disk games go through the M3U bundle like separate
+  ADFs (a zip handed to the emulator directly only boots its first disk).
+  Generic entry names (`disk1.adf`) are renamed after the zip
+  (`<zip name> (Disk 1).adf`). Zips already in the volume still play, as a
+  single file.
 - Kickstart ROMs: `.rom`, `.bin` (or any filename containing `kick`)
 - `.ipf` is **not** supported (needs the proprietary `capsimg` library).
 
