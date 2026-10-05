@@ -23,6 +23,8 @@ export interface RomEntry {
 export interface AppConfig {
   emulatorjs_source: string;
   emulatorjs_path: string;
+  /** `volume` (UC Volume, deployed) or `local` (directory on disk, dev). */
+  storage: 'volume' | 'local';
   volume: string | null;
 }
 
@@ -67,15 +69,45 @@ async function expectOk(res: Response, fallback: string): Promise<void> {
   }
 }
 
-/** Delete a whole game (all disks + save disk) as the signed-in user. */
+/**
+ * Delete a whole game (all disks + save disk) as the signed-in user. The
+ * server answers 207 when only some files could be deleted; treat that as an
+ * error so the user sees which files were left behind.
+ */
 export async function deleteGame(key: string): Promise<void> {
   const res = await fetch(`/api/games/${encodeURIComponent(key)}`, { method: 'DELETE' });
   await expectOk(res, 'Delete failed');
+  if (res.status === 207) {
+    const body = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(body?.error ?? 'Some files could not be deleted');
+  }
 }
 
 /** Delete a Kickstart ROM as the signed-in user. */
 export async function deleteRom(filename: string): Promise<void> {
   const res = await fetch(`/api/roms/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+  await expectOk(res, 'Delete failed');
+}
+
+/** URL of a stored screenshot PNG. */
+export function screenshotUrl(gameId: string, name: string): string {
+  return `/api/screenshots/${encodeURIComponent(gameId)}/${encodeURIComponent(name)}`;
+}
+
+/** Save a PNG screenshot for a game; resolves to the stored name. */
+export async function saveScreenshot(gameId: string, png: Blob): Promise<string> {
+  const res = await fetch(`/api/screenshots/${encodeURIComponent(gameId)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'image/png' },
+    body: png,
+  });
+  await expectOk(res, 'Saving screenshot failed');
+  return ((await res.json()) as { name: string }).name;
+}
+
+/** Delete a stored screenshot. */
+export async function deleteScreenshot(gameId: string, name: string): Promise<void> {
+  const res = await fetch(screenshotUrl(gameId, name), { method: 'DELETE' });
   await expectOk(res, 'Delete failed');
 }
 
@@ -89,6 +121,8 @@ export const api = {
   config: () => getJson<AppConfig>('/api/config'),
   games: () => getJson<{ games: GameEntry[] }>('/api/games').then((d) => d.games),
   roms: () => getJson<{ roms: RomEntry[] }>('/api/roms').then((d) => d.roms),
+  screenshots: (gameId: string) =>
+    getJson<{ screenshots: string[] }>(`/api/screenshots/${encodeURIComponent(gameId)}`).then((d) => d.screenshots),
 };
 
 /** Deterministic cover gradient derived from a game name. */

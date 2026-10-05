@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { Alert, AlertDescription, AlertTitle, Badge, Button, Spinner } from '@databricks/appkit-ui/react';
-import { ArrowLeft } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle, Badge, Button, Separator, Spinner } from '@databricks/appkit-ui/react';
+import { ArrowLeft, Keyboard } from 'lucide-react';
 import { api, contentUrl, gameKey, gameUrl, type AppConfig, type GameEntry, type RomEntry } from '@/lib/api';
 import { EmulatorView } from '@/components/EmulatorView';
+import { toggleVirtualKeyboard } from '@/lib/emulator';
 import { FloppyGlyph, FloppySaveGlyph } from '@/components/FloppyDisk';
 import { SnapshotPanel, type SaveEvent } from '@/components/SnapshotPanel';
 
@@ -43,6 +44,12 @@ export function PlayPage() {
 
   const onSave = useCallback(() => setSaveEvents((prev) => [{ kind: 'save', at: Date.now() }, ...prev]), []);
   const onLoad = useCallback(() => setSaveEvents((prev) => [{ kind: 'load', at: Date.now() }, ...prev]), []);
+
+  const [keyboardNote, setKeyboardNote] = useState<string | null>(null);
+  const onToggleKeyboard = async () => {
+    const ok = await toggleVirtualKeyboard();
+    setKeyboardNote(ok ? null : 'Start the game first, then open the keyboard.');
+  };
 
   const ready = config && game && rom;
 
@@ -101,7 +108,6 @@ export function PlayPage() {
                 biosUrl={contentUrl('roms', rom.filename)}
                 gameName={game.name}
                 model={rom.model}
-                gameType={game.type}
                 onSaveState={onSave}
                 onLoadState={onLoad}
               />
@@ -113,7 +119,22 @@ export function PlayPage() {
           </div>
 
           {/* Snapshots / save-state sidebar */}
-          <aside className="rounded-md border border-border bg-card p-4">
+          <aside className="space-y-4 rounded-md border border-border bg-card p-4">
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="flex items-center gap-2 font-amiga text-sm">
+                  <Keyboard className="h-4 w-4" /> Keyboard
+                </h3>
+                <Button size="sm" variant="outline" className="gap-1.5" onClick={() => void onToggleKeyboard()}>
+                  <Keyboard className="h-3.5 w-3.5" /> Toggle
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {keyboardNote ??
+                  'Shows PUAE’s on-screen Amiga keyboard (also toggled with V) for keys your keyboard can’t send.'}
+              </p>
+            </div>
+            <Separator />
             {game && <SnapshotPanel gameId={gameKey(game)} gameName={game.name} saveEvents={saveEvents} />}
           </aside>
         </div>
