@@ -40,12 +40,32 @@ interface VolumeApi {
   delete(filePath: string): Promise<void>;
 }
 
+/**
+ * Percent-encode each segment of a volume-relative path.
+ *
+ * AppKit's Files connector and the JS SDK splice the raw path into the Files
+ * API URL (`new URL(...)` / `url.pathname = ...`), which leaves `[`, `]`, `#`,
+ * `?` and `%` unencoded — so a disk image like `Game (Disk 1)[cr HF].adf`
+ * fails with a 500 INTERNAL_ERROR (and `#` / `?` would truncate the path).
+ * Encoding the segments ourselves is safe: URL parsing keeps existing `%XX`
+ * escapes as-is and the Files API decodes them, so files keep their real names.
+ * RFC 3986 sub-delims that encodeURIComponent leaves alone are encoded too.
+ */
+export function encodeVolumePath(filePath: string): string {
+  return filePath
+    .split('/')
+    .map((segment) =>
+      encodeURIComponent(segment).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`)
+    )
+    .join('/');
+}
+
 /** Unity Catalog Volume storage via the Files plugin, as the signed-in user. */
 export function volumeStorage(forUser: (req: Request) => VolumeApi): Storage {
   return {
     async list(req, dir) {
       try {
-        const entries = await forUser(req).list(dir);
+        const entries = await forUser(req).list(encodeVolumePath(dir));
         return entries.filter((e) => !e.is_directory && typeof e.name === 'string').map((e) => e.name as string);
       } catch {
         // Volume unset, directory missing, or the user lacks READ_VOLUME — treat as "no files".
@@ -53,15 +73,15 @@ export function volumeStorage(forUser: (req: Request) => VolumeApi): Storage {
       }
     },
     async download(req, filePath) {
-      const res = await forUser(req).download(filePath);
+      const res = await forUser(req).download(encodeVolumePath(filePath));
       if (!res.contents) throw new Error(`Empty download for ${filePath}`);
       return { stream: res.contents as WebReadableStream<Uint8Array>, size: res['content-length'] };
     },
     async upload(req, filePath, contents) {
-      await forUser(req).upload(filePath, contents as ReadableStream | Buffer);
+      await forUser(req).upload(encodeVolumePath(filePath), contents as ReadableStream | Buffer);
     },
     async delete(req, filePath) {
-      await forUser(req).delete(filePath);
+      await forUser(req).delete(encodeVolumePath(filePath));
     },
   };
 }

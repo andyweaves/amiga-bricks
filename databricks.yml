@@ -43,3 +43,6 @@ targets:
     default: true
   prod:
     mode: production
+    # One shared copy of the production deployment, under the deployer's home.
+    workspace:
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}

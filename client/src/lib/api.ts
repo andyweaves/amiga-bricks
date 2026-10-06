@@ -28,8 +28,6 @@ export interface AppConfig {
   volume: string | null;
 }
 
-const VOLUME_KEY = 'files';
-
 /** Stable per-game key used for selection + localStorage. */
 export function gameKey(game: GameEntry): string {
   return game.slug ?? game.filename ?? game.name;
@@ -52,7 +50,7 @@ export function contentUrl(kind: 'games' | 'roms', filename: string): string {
 
 /** Upload a file into the volume (roms/ or games/) as the signed-in user. */
 export async function uploadFile(path: string, file: File): Promise<void> {
-  const res = await fetch(`/api/files/${VOLUME_KEY}/upload?path=${encodeURIComponent(path)}`, {
+  const res = await fetch(`/api/upload?path=${encodeURIComponent(path)}`, {
     method: 'POST',
     body: file,
   });
