@@ -180,29 +180,28 @@ function registerRoutes(app: Application, storage: Storage): void {
     }
   });
 
-  // Local-mode stand-in for the Files plugin's upload route, at the same
-  // URL so the client is identical in both modes.
-  if (LOCAL_MODE) {
-    app.post(`/api/files/${VOLUME_KEY}/upload`, async (req, res) => {
-      const target = typeof req.query.path === 'string' ? req.query.path : '';
-      const [dir, name, ...rest] = target.split('/');
-      if ((dir !== GAMES_DIR && dir !== ROMS_DIR) || !name || rest.length > 0 || !isSafeFilename(name)) {
-        res.status(400).json({ error: 'Invalid upload path' });
-        return;
-      }
-      if (Number(req.headers['content-length'] ?? 0) > MAX_UPLOAD_SIZE) {
-        res.status(413).json({ error: `File exceeds ${MAX_UPLOAD_SIZE} bytes` });
-        return;
-      }
-      try {
-        await storage.upload(req, target, Readable.toWeb(req) as WebReadableStream<Uint8Array>);
-        res.json({ success: true });
-      } catch (err) {
-        console.error('[amiga] local upload failed', err);
-        res.status(500).json({ error: 'Upload failed' });
-      }
-    });
-  }
+  // Upload a ROM / disk image (raw body) to roms/ or games/. Goes through the
+  // storage layer in both modes — rather than the Files plugin's own upload
+  // route — so volume paths are percent-encoded (see encodeVolumePath).
+  app.post('/api/upload', async (req, res) => {
+    const target = typeof req.query.path === 'string' ? req.query.path : '';
+    const [dir, name, ...rest] = target.split('/');
+    if ((dir !== GAMES_DIR && dir !== ROMS_DIR) || !name || rest.length > 0 || !isSafeFilename(name)) {
+      res.status(400).json({ error: 'Invalid upload path' });
+      return;
+    }
+    if (Number(req.headers['content-length'] ?? 0) > MAX_UPLOAD_SIZE) {
+      res.status(413).json({ error: `File exceeds ${MAX_UPLOAD_SIZE} bytes` });
+      return;
+    }
+    try {
+      await storage.upload(req, target, Readable.toWeb(req) as WebReadableStream<Uint8Array>);
+      res.json({ success: true });
+    } catch (err) {
+      console.error('[amiga] upload failed', err);
+      res.status(500).json({ error: 'Upload failed' });
+    }
+  });
 
   // --- Screenshots ---------------------------------------------------
   // PNGs captured from the emulator canvas, stored per game under

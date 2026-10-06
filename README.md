@@ -45,20 +45,21 @@ UI was rebuilt with AppKit components while keeping the retro Workbench look.
 
 ## Endpoints
 
-| Endpoint                              | Description                                           |
-| ------------------------------------- | ----------------------------------------------------- |
-| `GET /api/config`                     | Runtime config (EmulatorJS asset source/path, volume) |
-| `GET /api/games`                      | Games with multi-disk grouping                        |
-| `GET /api/roms`                       | Discovered Kickstart ROMs + detected model            |
-| `GET /api/games/:slug/bundle`         | ZIP (M3U + ADFs) for a multi-disk game                |
-| `GET /api/content/:kind/:filename`    | Extension-preserving stream of a ROM/disk image       |
-| `DELETE /api/games/:key`              | Delete a whole game (all disks + save disk)           |
-| `DELETE /api/roms/:filename`          | Delete a Kickstart ROM                                |
-| `GET /api/screenshots/:game`          | List a game's screenshots (newest first)              |
-| `POST /api/screenshots/:game`         | Save a PNG screenshot (raw `image/png` body)          |
-| `GET /api/screenshots/:game/:file`    | Fetch a screenshot PNG                                |
-| `DELETE /api/screenshots/:game/:file` | Delete a screenshot                                   |
-| `GET POST /api/files/files/*`         | Files plugin routes (list / upload / …)               |
+| Endpoint                              | Description                                                 |
+| ------------------------------------- | ----------------------------------------------------------- |
+| `GET /api/config`                     | Runtime config (EmulatorJS asset source/path, volume)       |
+| `GET /api/games`                      | Games with multi-disk grouping                              |
+| `GET /api/roms`                       | Discovered Kickstart ROMs + detected model                  |
+| `GET /api/games/:slug/bundle`         | ZIP (M3U + ADFs) for a multi-disk game                      |
+| `GET /api/content/:kind/:filename`    | Extension-preserving stream of a ROM/disk image             |
+| `DELETE /api/games/:key`              | Delete a whole game (all disks + save disk)                 |
+| `DELETE /api/roms/:filename`          | Delete a Kickstart ROM                                      |
+| `GET /api/screenshots/:game`          | List a game's screenshots (newest first)                    |
+| `POST /api/screenshots/:game`         | Save a PNG screenshot (raw `image/png` body)                |
+| `GET /api/screenshots/:game/:file`    | Fetch a screenshot PNG                                      |
+| `DELETE /api/screenshots/:game/:file` | Delete a screenshot                                         |
+| `POST /api/upload?path=`              | Upload a ROM / disk image (raw body) to `roms/` or `games/` |
+| `GET /api/files/files/*`              | Files plugin routes (list / …)                              |
 
 Filenames and game keys in route params must be a single plain path segment
 (no `/`, `\`, `..` or leading `.`); anything else is rejected with `400`.
